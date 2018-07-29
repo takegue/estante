@@ -1,0 +1,8 @@
+[package]
+name = "embed"
+version = "0.1.0"
+authors = ["TKNGUE <takeno@jnlp.org>"]
+
+[lib]
+name = "embed"
+crate-type = ["dylib"]
