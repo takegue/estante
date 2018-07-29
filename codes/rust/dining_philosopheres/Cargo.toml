@@ -1,0 +1,6 @@
+[package]
+name = "dining_philosopheres"
+version = "0.1.0"
+authors = ["TKNGUE <takeno@jnlp.org>"]
+
+[dependencies]
