@@ -1,3 +1,5 @@
+#![feature(test)]
+
 extern crate rand;
 
 use std::error;
@@ -11,6 +13,7 @@ use std::fmt;
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test::Bencher;
 
     #[test]
     fn create_hll() {
@@ -38,6 +41,11 @@ mod tests {
         for item in &items {
             hll.update(item);
         }
+    }
+
+    #[bench]
+    fn bench_add_two(b: &mut Bencher) {
+        b.iter(|| small_range());
     }
 }
 
@@ -108,6 +116,7 @@ impl HyperLogLog {
         Ok(HyperLogLog {
             alpha, b, m,
             b_mask: m - 1,
+            // m: m,
             registers: vec![0; m],
         })
     }
