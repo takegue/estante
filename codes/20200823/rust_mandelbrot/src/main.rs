@@ -6,7 +6,6 @@ use image::png::PNGEncoder;
 use image::ColorType;
 use num::Complex;
 use std::fs::File;
-use std::io::Write;
 use std::str::FromStr;
 
 fn write_image(
@@ -25,7 +24,7 @@ fn write_image(
     Ok(())
 }
 
-fn complex_square_add_loop(c: Complex<f64>, limit: u32) -> Option<u32> {
+fn escape_time(c: Complex<f64>, limit: usize) -> Option<usize> {
     let mut z = Complex { re: 0.0, im: 0.0 };
     for i in 0..limit {
         z = z * z + c;
@@ -105,10 +104,6 @@ fn test_pixel_to_point() {
     )
 }
 
-fn escape_time(point: Complex<f64>, limit: usize) -> Option<usize> {
-    None
-}
-
 fn render(
     pixels: &mut [u8],
     bounds: (usize, usize),
@@ -133,7 +128,7 @@ fn main() {
     if args.len() != 5 {
         eprintln!("Usage: mandelbrot FILE PIXELS UPPERLEFT LOWERRIGHT");
         eprintln!(
-            "Esample: {} mandal.png 1000x750 -1.20,0.35, -1,0.20",
+            "Esample: {} mandal.png 1000x750 -1.20,0.35 -1,0.20",
             args[0]
         );
         std::process::exit(1);
@@ -144,6 +139,32 @@ fn main() {
     let lower_right = parse_complex(&args[4]).expect("error parsing lower right corner point");
 
     let mut pixels = vec![0; bounds.0 * bounds.1];
-    render(&mut pixels, bounds, upper_left, lower_right);
+
+    let threads = 8;
+    let rows_per_band = bounds.1 / threads + 1;
+    {
+        let bands: Vec<&mut [u8]> = pixels.chunks_mut(rows_per_band * bounds.0).collect();
+        crossbeam::scope(|spawner| {
+            for (i, band) in bands.into_iter().enumerate() {
+                let top = rows_per_band * i;
+                let height = band.len() / bounds.0;
+
+                let band_bounds = (bounds.0, height);
+                let band_upper_left =
+                    pixel_to_point(band_bounds, (0, top), upper_left, lower_right);
+                let band_lower_right = pixel_to_point(
+                    band_bounds,
+                    (bounds.0, top + height),
+                    upper_left,
+                    lower_right,
+                );
+
+                spawner.spawn(move || {
+                    render(band, band_bounds, band_upper_left, band_lower_right);
+                });
+            }
+        });
+    }
+
     write_image(&args[1], &pixels, bounds).expect("Error writing PNG file");
 }
