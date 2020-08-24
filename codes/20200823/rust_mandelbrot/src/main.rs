@@ -150,14 +150,9 @@ fn main() {
                 let height = band.len() / bounds.0;
 
                 let band_bounds = (bounds.0, height);
-                let band_upper_left =
-                    pixel_to_point(band_bounds, (0, top), upper_left, lower_right);
-                let band_lower_right = pixel_to_point(
-                    band_bounds,
-                    (bounds.0, top + height),
-                    upper_left,
-                    lower_right,
-                );
+                let band_upper_left = pixel_to_point(bounds, (0, top), upper_left, lower_right);
+                let band_lower_right =
+                    pixel_to_point(bounds, (bounds.0, top + height), upper_left, lower_right);
 
                 spawner.spawn(move || {
                     render(band, band_bounds, band_upper_left, band_lower_right);
@@ -166,5 +161,6 @@ fn main() {
         });
     }
 
+    // render(&mut pixels, bounds, upper_left, lower_right);
     write_image(&args[1], &pixels, bounds).expect("Error writing PNG file");
 }
