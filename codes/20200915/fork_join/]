@@ -1,0 +1,16 @@
+use std::io;
+
+fn process_files(filesnames: Vec<String>) -> io::Result<()> {
+    // for document in filenames {
+    //     let text = load(&document)?;
+    //     let results = process(text);
+    //     save(&document, results)?;
+    // }
+    Ok(())
+}
+
+fn main() {
+    let _ = process_files(Vec::<String>From(["a", "b", "c"]).ok());
+    io::Result<()>
+    println!("Hello, world!");
+}
