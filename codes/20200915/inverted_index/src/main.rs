@@ -7,7 +7,7 @@ use index::InMemoryIndex;
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::mpsc::{channel, Receiver};
 use std::thread;
 
@@ -30,12 +30,43 @@ fn start_file_reader_thread(
     (reciver, handle)
 }
 
+fn start_index_writer_thread(
+    big_indexes: Receiver<InMemoryIndex>,
+    output_dir: &Path,
+) -> (Receiver<PathBuf>, thread::JoinHandle<(io::Result<()>)>) {
+    let (sender, receiver) = channel();
+    let handle = thread::spawn(move || Ok(()));
+    (receiver, handle)
+}
+
+fn merge_index_files(files: Receiver<PathBuf>, output_dir: &Path) -> io::Result<()> {
+    Ok(())
+}
+
+fn start_in_memory_merge_thread(
+    file_indexes: Receiver<InMemoryIndex>,
+) -> (Receiver<InMemoryIndex>, thread::JoinHandle<()>) {
+    let (sender, receiver) = channel();
+    let handle = thread::spawn(move || {
+        let mut bigone = InMemoryIndex::new();
+        for child in file_indexes {
+            bigone.merge(child);
+            if bigone.is_large() {
+                if sender.send(bigone).is_err() {
+                    return;
+                }
+                bigone = InMemoryIndex::new();
+            }
+        }
+    });
+    (receiver, handle)
+}
+
 fn start_file_index_thread(
     texts: Receiver<String>,
 ) -> (Receiver<InMemoryIndex>, thread::JoinHandle<()>) {
     let (sender, receiver) = channel();
     let handle = thread::spawn(move || {
-        let mut accumulated_index = InMemoryIndex::new();
         for (doc_id, text) in texts.into_iter().enumerate() {
             let index = InMemoryIndex::from_single_document(doc_id, text);
             if sender.send(index).is_err() {
@@ -50,9 +81,21 @@ fn start_file_index_thread(
 fn run_in_parrallel(filenames: Vec<String>) -> io::Result<()> {
     let output_dir = PathBuf::from(".");
     let documents = expand_filename_argumentrs(filenames)?;
-    let _ = start_file_reader_thread(documents);
 
-    Ok(())
+    let (texts, h1) = start_file_reader_thread(documents);
+    let (pints, h2) = start_file_index_thread(texts);
+    let (gallons, h3) = start_in_memory_merge_thread(pints);
+    let (files, h4) = start_index_writer_thread(gallons, &output_dir);
+    let result = merge_index_files(files, &output_dir);
+
+    let r1 = h1.join().unwrap();
+    h2.join().unwrap();
+    h3.join().unwrap();
+    let r4 = h4.join().unwrap();
+
+    r1?;
+    r4?;
+    result
 }
 
 fn expand_filename_argumentrs(args: Vec<String>) -> io::Result<Vec<PathBuf>> {
