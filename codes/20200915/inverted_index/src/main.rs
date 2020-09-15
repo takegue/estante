@@ -1,18 +1,21 @@
 extern crate argparse;
 
+mod index;
+
 use argparse::{ArgumentParser, Collect, StoreTrue};
+use index::InMemoryIndex;
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::path::PathBuf;
 use std::sync::mpsc::{channel, Receiver};
-use std::thread::{spawn, JoinHandle};
+use std::thread;
 
 fn start_file_reader_thread(
     documents: Vec<PathBuf>,
-) -> (Receiver<String>, JoinHandle<io::Result<()>>) {
+) -> (Receiver<String>, thread::JoinHandle<io::Result<()>>) {
     let (sender, reciver) = channel();
-    let handle = spawn(move || {
+    let handle = thread::spawn(move || {
         for filename in documents {
             let mut f = File::open(filename)?;
             let mut text = String::new();
@@ -27,8 +30,25 @@ fn start_file_reader_thread(
     (reciver, handle)
 }
 
+fn start_file_index_thread(
+    texts: Receiver<String>,
+) -> (Receiver<InMemoryIndex>, thread::JoinHandle<()>) {
+    let (sender, receiver) = channel();
+    let handle = thread::spawn(move || {
+        let mut accumulated_index = InMemoryIndex::new();
+        for (doc_id, text) in texts.into_iter().enumerate() {
+            let index = InMemoryIndex::from_single_document(doc_id, text);
+            if sender.send(index).is_err() {
+                break;
+            }
+        }
+    });
+
+    (receiver, handle)
+}
+
 fn run_in_parrallel(filenames: Vec<String>) -> io::Result<()> {
-    // let output_dir = PathBuf::from(".");
+    let output_dir = PathBuf::from(".");
     let documents = expand_filename_argumentrs(filenames)?;
     let _ = start_file_reader_thread(documents);
 
