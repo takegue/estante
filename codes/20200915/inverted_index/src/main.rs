@@ -1,8 +1,8 @@
-use argparse::{ArgumentParser, Collect, StoreTrue};
-
 mod index;
 mod tmp_dir;
-mod write;
+mod writer;
+
+use argparse::{ArgumentParser, Collect, StoreTrue};
 
 use index::InMemoryIndex;
 use std::fs::File;
@@ -11,8 +11,7 @@ use std::io::prelude::*;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::{channel, Receiver};
 use std::thread;
-use tmp_dir::TmpDir;
-use write::write_index_to_tmp_file;
+use writer::write_index_to_tmp_file;
 
 fn start_file_reader_thread(
     documents: Vec<PathBuf>,
@@ -38,10 +37,10 @@ fn start_index_writer_thread(
     output_dir: &Path,
 ) -> (Receiver<PathBuf>, thread::JoinHandle<io::Result<()>>) {
     let (sender, receiver) = channel();
-    let mut tmp_dir = TmpDir::new(output_dir);
+    let mut tdir = tmp_dir::TmpDir::new(output_dir);
     let handle = thread::spawn(move || {
         for index in big_indexes {
-            let file = write_index_to_tmp_file(index, &mut tmp_dir)?;
+            let file = write_index_to_tmp_file(index, &mut tdir)?;
             if sender.send(file).is_err() {
                 break;
             }
@@ -81,8 +80,8 @@ fn start_file_index_thread(
     let (sender, receiver) = channel();
     let handle = thread::spawn(move || {
         for (doc_id, text) in texts.into_iter().enumerate() {
-            let index = InMemoryIndex::from_single_document(doc_id, text);
-            if sender.send(index).is_err() {
+            let idx = InMemoryIndex::from_single_document(doc_id, text);
+            if sender.send(idx).is_err() {
                 break;
             }
         }
