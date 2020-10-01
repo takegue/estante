@@ -1,4 +1,4 @@
-#![feature(trace_macros)]
+// #![feature(trace_macros)]
 
 use std::collections::HashMap;
 
@@ -11,6 +11,20 @@ enum Json {
     Array(Vec<Json>),
     Object(Box<HashMap<String, Json>>),
 }
+
+macro_rules! impl_from_num_for_json{
+    ( $( $t: ident )* ) => {
+        $(
+            impl From<$t> for Json {
+                fn from(arg: $t) -> Json {
+                    Json::Number(arg as f64)
+                }
+            }
+
+        )*
+    };
+}
+impl_from_num_for_json!(u8 i8 u16 i16 u32 i32 u64 i64 usize isize f32 f64);
 
 impl From<bool> for Json {
     fn from(b: bool) -> Json {
@@ -30,12 +44,6 @@ impl From<&str> for Json {
     }
 }
 
-impl From<i32> for Json {
-    fn from(i: i32) -> Json {
-        Json::Number(i as f64)
-    }
-}
-
 macro_rules! json {
     (null) => {
         Json::Null
@@ -49,17 +57,13 @@ macro_rules! json {
         ))
     };
     ($other:tt) => {
-        // TODO:
-        Json::Number($other);
+        Json::from($other);
     };
 }
 
 #[test]
 fn test_json_array_with_element() {
-    trace_macros!(true);
-    let macro_generated_value = json!([{"picth": 440.0}]);
-    // let macro_generated_value = json!([1.0, 2.0, 3.0]);
-    trace_macros!(false);
+    let macro_generated_value = json!([{"pitch": 440.0}]);
     let hand_coded_value = Json::Array(vec![Json::Object(Box::new(
         vec![("pitch".to_string(), Json::Number(440.0))]
             .into_iter()
@@ -68,7 +72,20 @@ fn test_json_array_with_element() {
     assert_eq!(macro_generated_value, hand_coded_value);
 }
 
+#[test]
+fn test_json_array() {
+    let macro_generated_value = json!([1]);
+    let hand_coded_value = Json::Array(vec![Json::Number(1.0)]);
+    assert_eq!(macro_generated_value, hand_coded_value);
+}
+
+#[test]
+fn test_json_null() {
+    let macro_generated_value = json!(null);
+    let hand_coded_value = Json::Null;
+    assert_eq!(macro_generated_value, hand_coded_value);
+}
+
 fn main() {
-    // json!(null);
-    print!("{:?}", json!(null));
+    print!("{:?}", json!([{"picth": 440.0}]));
 }
