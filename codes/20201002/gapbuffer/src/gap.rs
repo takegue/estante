@@ -72,6 +72,7 @@ impl<T> GapBuffer<T> {
             std::ptr::copy_nonoverlapping(self.space(self.gap.end), new_gap_end, after_gap);
         }
 
+        assert_eq!(self.storage.capacity(), 0);
         self.storage = new;
         self.gap = new_gap;
     }
@@ -137,6 +138,7 @@ impl<T> Drop for GapBuffer<T> {
             for i in 0..self.gap.start {
                 std::ptr::drop_in_place(self.space_mut(i));
             }
+
             for i in self.gap.end..self.capacity() {
                 std::ptr::drop_in_place(self.space_mut(i));
             }

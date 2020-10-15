@@ -22,8 +22,8 @@ impl<T> ops::IndexMut<Cell> for Vec<T> {
 
 #[derive(Debug)]
 struct Link {
-    prev: Cell,
-    next: Cell,
+    pub prev: Cell,
+    pub next: Cell,
 }
 
 #[derive(Default, Debug)]
@@ -415,7 +415,7 @@ fn exhaustive_test() {
                 }
                 m.add_row(&row);
             }
-            solve(m)
+            m.solve(m)
         };
         assert_eq!(brute_force, dlx)
     }
