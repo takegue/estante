@@ -46,7 +46,9 @@ function! Do(option) abort
                     \ 'sync': l:sync,
                     \ 'on_notification': function('s:handle', [l:ctx, l:server_name, l:command_id, l:sync, l:query, l:bufnr]),
                     \ })
+        call sign_unplace(l:server_name)
     endfor
+
     echo 'Retrieving code actions ...'
 endfunction
 
