@@ -4,12 +4,12 @@
 "
 " Require vim-lsp
 "
-" call sign_place(10, 'MySignGroup', 'MySign', '%', {'lnum' : 1, 'priority' : 90
+" call sign_place(10, 'MySignGroup', 'light_bulb', '%', {'lnum' : 1, 'priority' : 90
 " call sign_unplace("MySignGroup")
 
-call sign_define('MySign', {"text": "💡"})
+call sign_define('light_bulb', {"text": "💡"})
 
-function! Do(option) abort
+function! UpdateHints(option) abort
     let l:selection = get(a:option, 'selection', v:false)
     let l:sync = get(a:option, 'sync', v:false)
     let l:query = get(a:option, 'query', '')
@@ -20,8 +20,8 @@ function! Do(option) abort
     endif
 
     let l:range = {
-        \ "start": {"line": 4, "character": 0},
-        \ "end": {"line": 25, "character": 0},
+        \ "start": {"line": 0, "character": 0},
+        \ "end": {"line": line('$'), "character": 0},
         \ }
 
     let l:ctx = {
@@ -44,14 +44,14 @@ function! Do(option) abort
                     \   },
                     \ },
                     \ 'sync': l:sync,
-                    \ 'on_notification': function('s:handle2', [l:ctx, l:server_name, l:command_id, l:sync, l:query, l:bufnr]),
+                    \ 'on_notification': function('s:handle', [l:ctx, l:server_name, l:command_id, l:sync, l:query, l:bufnr]),
                     \ })
     endfor
 
     echo 'Retrieving code actions ...'
 endfunction
 
-function! s:handle2(ctx, server_name, command_id, sync, query, bufnr, data) abort
+function! s:handle(ctx, server_name, command_id, sync, query, bufnr, data) abort
     " Ignore old request.
     if a:command_id != lsp#_last_command()
         return
@@ -66,7 +66,6 @@ function! s:handle2(ctx, server_name, command_id, sync, query, bufnr, data) abor
         return
     endif
 
-    
     let l:total_code_actions = []
 
     for l:result in a:ctx['results']
@@ -94,16 +93,16 @@ function! s:handle2(ctx, server_name, command_id, sync, query, bufnr, data) abor
             for l:edits in values(l:changes)
                 for l:edit in l:edits
                     let lnum = l:edit["range"]["start"]["line"] + 1
-                    call sign_place(lnum, l:server_name, 'MySign', '%', {'lnum' : lnum, 'priority' : 100})
+                    call sign_place(lnum, l:server_name, 'light_bulb', '%', {'lnum' : lnum, 'priority' : 100})
                 endfor
             endfor
 
-            let l:document_edits = l:code_action["edit"]["documentChanges"]
+            let l:document_edits = get(l:code_action["edit"], "documentChanges", [])
             for l:document_edit in l:document_edits
                 let l:edits = get(l:document_edit, "edits", [])
                 for l:edit in l:edits
                     let lnum = l:edit["range"]["start"]["line"] + 1
-                    call sign_place(lnum, l:server_name, 'MySign', '%', {'lnum' : lnum, 'priority' : 100})
+                    call sign_place(lnum, l:server_name, 'light_bulb', '%', {'lnum' : lnum, 'priority' : 100})
                 endfor
             endfor
         endfor
@@ -116,6 +115,12 @@ function! s:handle2(ctx, server_name, command_id, sync, query, bufnr, data) abor
     " endif
 endfunction
 
+augroup lightbulb
+    autocmd!
+    " this one is which you're most likely to use?
+    autocmd User lsp_diagnostics_updated call Do({})
+augroup end
+
 " Debug codes
 augroup mydebug
     autocmd!
@@ -124,3 +129,12 @@ augroup mydebug
 augroup end
 let g:lsp_log_file = "/tmp/vim-lsp.log"
 echomsg "Updated"
+
+
+inoremap <F5> <C-R>=ListMonths()<CR>
+func! ListMonths()
+    call complete(col('.'), ['January', 'February', 'March',
+                \ 'April', 'May', 'June', 'July', 'August', 'September',
+                \ 'October', 'November', 'December'])
+    return ''
+endfunc

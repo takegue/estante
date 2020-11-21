@@ -17,8 +17,6 @@ fn complex_square_add_loop(c: Complex<f64>, limit: u32) -> Option<u32> {
 }
 
 fn main() {
-    let v = S {};
-    println!("{:?}", &v);
     println!("Hello, world!");
     println!("Hello, world!");
     println!("Hello, world!");
