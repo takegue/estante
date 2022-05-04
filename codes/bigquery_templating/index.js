@@ -1,7 +1,7 @@
 'use restrict';
 
  // Imports the Google Cloud client library
-const {BigQuery} = require('@google-cloud/bigquery');
+const { BigQuery } = require('@google-cloud/bigquery');
 const fs = require('fs');
 const path = require('path');
 const cli = require('cac')()
@@ -140,11 +140,26 @@ async function pullBigQueryResources() {
 async function pushBigQueryResources() {
   const bqClient = new BigQuery();
   const rootDir = path.normalize("./bigquery");
+
+  // console.log(catalogId, schemaId, tableId, p, path.basename(p)) 
   const results = await Promise.allSettled((await walk(rootDir)).map(
     async (p) => {
+      const msgWithPath = (msg) =>  `${path.dirname(p)}: ${msg}`;
+      const jsonSerializer = (obj) => JSON.stringify(obj, null, 4)
+      const fsHandler = (err) => {
+          throw new Error(
+            msgWithPath(err.message)
+          );
+      }
+      const bigqueryHandler = (err) => {
+          throw new Error(
+            msgWithPath(err.errors.map(e => e.message).join('\n'))
+          );
+      }
+
       if(p && !p.endsWith('sql')) return null;
 
-      const [catalogId, schemaId, tableId] = path.dirname(path.relative(rootDir, p)).split('/')
+      const [catalogId, schemaId, name] = path.dirname(path.relative(rootDir, p)).split('/')
       const query = await fs.promises.readFile(p)
         .then((s) => s.toString())
         .catch((err => {
@@ -152,14 +167,139 @@ async function pushBigQueryResources() {
         }))
       ;
 
-      // console.log(catalogId, schemaId, tableId, p, path.basename(p)) 
-      const msgWithPath = (msg) =>  `${path.dirname(p)}: ${msg}`;
+      const syncMetadata = async (table, dirPath) => {
+          const metadataPath = path.join(dirPath, "metadata.json");
+          const fieldsPath = path.join(dirPath, "schema.json");
+          const [metadata] = await table.getMetadata();
+
+          // schema.json: local file <---> BigQuery Table
+          if(fs.existsSync(fieldsPath)) {
+            const oldFields = await fs.promises.readFile(fieldsPath)
+              .then((s) => JSON.parse(s.toString()))
+              .catch((err) => console.error(err))
+            ;
+            // Update 
+            let updateCnt = 0;
+            Object.entries(metadata.schema.fields).map(
+              ([k, v]) => {
+                if(k in oldFields) {
+                  if(metadata.schema.fields[k].description 
+                    && metadata.schema.fields[k].description != v.description
+                  ) {
+                    metadata.schema.fields[k].description = v.description
+                    updateCnt++;
+                  }
+                }
+              }
+            );
+          }
+
+          // metadata.json: local file <--- BigQuery Table
+          const localMetadata = Object.fromEntries(Object.entries({
+            type: metadata.type,
+            routineType: metadata.routineType,
+            modelType: metadata.modelType,
+            description: metadata.description,
+            // Filter predefined labels
+          }).filter(([_, v]) => !!v && Object.keys(v).length > 0));
+
+
+          // Sync
+          await Promise.all([
+            fs.promises.writeFile(
+              fieldsPath,
+              jsonSerializer(metadata.schema.fields)
+            ).catch(fsHandler),
+            , fs.promises.writeFile(
+              metadataPath,
+              jsonSerializer(localMetadata)
+            ).catch(fsHandler),
+            table.setMetadata(metadata)
+              .catch(bigqueryHandler),
+          ])
+      };
+
       switch (path.basename(p)) {
         case "ddl.sql":
-          await bqClient.createQueryJob(query)
+          // https://cloud.google.com/bigquery/docs/reference/rest/v2/Job#jobconfiguration
+          const [job] = await bqClient.createQueryJob({
+              query,
+              priority: 'BATCH',
+              labels: {
+                key1: "value1"
+              }
+            })
+            .catch(bigqueryHandler)
+          await job.getQueryResults();
+
+          // const [completedJob] = await job.get()
+          switch (job.metadata.statistics.query.statementType) {
+            case "CREATE_SCHEMA":
+            case "DROP_SCHEMA":
+            case "ALTER_SCHEMA":
+              break;
+            case "CREATE_ROW_ACCESS_POLICY":
+            case "DROP_ROW_ACCESS_POLICY":
+              //TODO: row access policy
+              console.log(job.metadata.statistics);
+              break;
+            case "CREATE_MODEL":
+            case "EXPORT_MODEL":
+              //TODO: models
+              console.log(job.metadata.statistics);
+              break;
+            case "CREATE_FUNCTION":
+            case "CREATE_TABLE_FUNCTION":
+            case "DROP_FUNCTION":
+            case "CREATE_PROCEDURE":
+            case "DROP_PROCEDURE":
+              //TODO: rountines
+              const schema = bqClient.dataset(schemaId);
+              const routineId = name;
+              const [routine] = await schema.routine(routineId).get();
+              const metadata = routine.metadata;
+              const metadataPath = path.join(path.dirname(p), "metadata.json");
+              const localMetadata = Object.fromEntries(Object.entries({
+                routineType: metadata.routineType,
+                description: metadata.description,
+                // Filter predefined labels
+              }).filter(([_, v]) => !!v && Object.keys(v).length > 0));
+              await fs.promises.writeFile(
+                metadataPath,
+                JSON.stringify(localMetadata, null, 4)
+              )
+              break;
+            case "CREATE_VIEW":
+            case "CREATE_AS_TABLE_SELECT":
+            case "DROP_TABLE":
+            case "DROP_VIEW":
+            case "ALTER_TABLE":
+            case "ALTER_VIEW":
+            case "INSERT":
+            case "UPDATE":
+            case "DELETE":
+            case "MERGE":
+            case "CREATE_MATERIALIZED_VIEW":
+            case "DROP_MATERIALIZED_VIEW":
+              {
+                const schema = bqClient.dataset(schemaId);
+                const [table] = await schema.table(name).get();
+                await syncMetadata(table, path.dirname(p))
+              }
+              break;
+            case "SCRIPT":
+              //TODO: script
+              const [childJobs, _] = await bqClient.getJobs({parentJobId: job.id});
+              const tgt = childJobs[0].metadata.statistics.query.ddlTargetRoutine
+              console.dir(tgt);
+              break;
+            default:
+              console.dir(job.metadata);
+          }
           break;
         case "view.sql":
           const schema = bqClient.dataset(schemaId);
+          const tableId = name;
           const api = schema.table(tableId);
           const [isExist] = await api.exists();
 
@@ -171,76 +311,17 @@ async function pushBigQueryResources() {
               })
           );
           const [metadata] = await view.getMetadata();
-
-          const metadataPath = path.join(path.dirname(p), "metadata.json");
-          if(fs.existsSync(metadataPath)) {
-            const metaTable = await fs.promises.readFile(metadataPath)
-              .then((s) => JSON.parse(s.toString()))
-              .catch((err) => console.error(err))
-            ;
-            metadata.description = metaTable?.description ?? "";
-            metadata.labels =  {...predefinedLabels, ...metaTable?.labels};
-          }
-          metadata.view = query;
-
-          await view.setMetadata(metadata)
-            .catch(err => {
-                throw new Error(
-                  msgWithPath(err.errors.map(e => e.message).join('\n')));
-            });
-
-          const localMetadata = Object.fromEntries(Object.entries({
-            type: metadata.type,
-            description: metadata.description,
-            // Filter predefined labels
-            labels: Object.entries(metadata.labels).reduce((ret, [k, v]) => {
-              if(!(k in predefinedLabels)) {
-                ret[k] = v;
-              }
-              return ret
-            }, {})
-          }).filter(([_, v]) => !!v && Object.keys(v).length > 0));
-          await fs.promises.writeFile(
-            metadataPath,
-            JSON.stringify(localMetadata, null, 4)
-          )
-
-          const fieldsPath = path.join(path.dirname(p), "schema.json");
-          if(fs.existsSync()) {
-            const oldFields = await fs.promises.readFile(fieldsPath)
-              .then((s) => JSON.parse(s.toString()))
-              .catch((err) => console.error(err))
-            ;
-            // Update 
-            Object.fromEntries(Object.entries(metadata.schema.fields).map(
-              ([k, v]) => {
-                if(k in oldFields) {
-                  if(metadata.schema.fields[k].description) {
-                    metadata.schema.fields[k].description = v.description
-                  }
-                }
-              }
-            ));
-
-            // Sync local storage and BigQuery
-            await fs.promises.writeFile(
-              fieldsPath,
-              JSON.stringify(metadata.schema.fields, null, 4)
-            )
-            await view.setMetadata(metadata)
-          }
-          await fs.promises.writeFile(
-            fieldsPath,
-            JSON.stringify(metadata.schema.fields, null, 4)
-          )
+          await syncMetadata(view, path.dirname(p))
           break;
       }
+      return null
     }
   ));
 
-  console.log(results
-    .filter(r => r.status == 'rejected')
-    .map(e => console.log(e.reason?.message))
+  console.dir(results
+    // .filter(r => r.status == 'rejected')
+    // .map(e => console.log(e, e?.reason?.errors))
+    , {depth: 3}
   );
 }
 
