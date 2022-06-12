@@ -746,10 +746,6 @@ function createCLI() {
       default: false,
       type: [Boolean],
     })
-    // .option('--ddl-useful-rewrite', "Rewrite DDL in useful", {
-    //   default: true,
-    //   type: [Boolean],
-    // })
     .action(async (projects: string[], cmdOptions: any) => {
       const options = {
         rootDir: cmdOptions.rootPath,
