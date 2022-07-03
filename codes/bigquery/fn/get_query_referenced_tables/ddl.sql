@@ -23,7 +23,7 @@ begin
     select as value
       if(
         cache_hit
-        , error("Inproper reference due to cache_hit. Avoid to use query cache_hit=true. See https://cloud.google.com/bigquery/docs/cached-results?hl=ja#cache-exceptions")
+        , error("Inproper reference due to cache_hit=true. Avoid to use query cached. Referer https://cloud.google.com/bigquery/docs/cached-results#cache-exceptions")
         , referenced_tables
       )
     from `region-us.INFORMATION_SCHEMA.JOBS_BY_USER`
