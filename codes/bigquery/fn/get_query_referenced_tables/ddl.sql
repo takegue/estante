@@ -12,13 +12,12 @@ Arguments
   '''
 )
 begin
-
-  declare ret array<struct<project_id string, dataset_id string, table_id string>>;
   declare last_job_id string;
 
   begin
-    execute immediate query
+    execute immediate query;
   exception when error then
+
   end;
   set last_job_id = @@last_job_id;
 
@@ -30,4 +29,5 @@ begin
     and date(creation_time) = current_date()
     order by start_time desc
   );
-select ret;
+
+end
