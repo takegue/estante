@@ -1,4 +1,4 @@
-create or replace procedure `fn.get_view_referenced_tables`(
+create or replace procedure `fn.get_query_referenced_tables`(
   in query string
   , out ret array<struct<project_id string, dataset_id string, table_id string>>
 )
