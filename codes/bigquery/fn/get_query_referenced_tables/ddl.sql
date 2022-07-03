@@ -13,20 +13,25 @@ Arguments
 )
 begin
   declare last_job_id string;
-
   begin
     execute immediate query;
   exception when error then
-
   end;
   set last_job_id = @@last_job_id;
+  select last_job_id
 
   set ret = (
     select as value
-      referenced_tables
+      if(
+        cache_hit
+        , error("Inproper reference due to cache_hit. Avoid to use query cache_hit=true. See https://cloud.google.com/bigquery/docs/cached-results?hl=ja#cache-exceptions")
+        , referenced_tables
+      )
     from `region-us.INFORMATION_SCHEMA.JOBS_BY_USER`
-    where job_id = last_job_id
-    and date(creation_time) = current_date()
+    where
+
+      job_id = last_job_id
+      and date(creation_time) = current_date()
     order by start_time desc
   );
 
