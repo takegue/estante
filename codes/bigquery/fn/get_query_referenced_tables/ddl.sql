@@ -18,7 +18,6 @@ begin
   exception when error then
   end;
   set last_job_id = @@last_job_id;
-  select last_job_id
 
   set ret = (
     select as value
