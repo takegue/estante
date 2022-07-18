@@ -1,25 +1,3 @@
--- declare destination struct<
---     project_id string
---     , dataset_id string
---     , table_id string
---   >
---   ;
--- declare sources array<struct<
---     project_id string
---     , dataset_id string
---     , table_id string
---   >>
--- ;
--- declare alignemnts array<struct<
---     destination string
---     , sources array<string>
---   >>;
--- declare ret struct<begins_at date, ends_at date>;
-
--- set destination = (null, 'sandbox', "test_partition4");
--- set sources = [("bigquery-public-data", "ga4_obfuscated_sample_ecommerce", "events_*")];
--- set alignemnts = [("20220101", ["20210101", "20210102", "20210103"])];
-
 create or replace procedure `fn.extract_staled_partitions`(
   destination struct<
     project_id string
@@ -91,9 +69,19 @@ begin
         , regexp_replace(argument, r'\*$', '') as pattern
       )])
       left join unnest(
-        if(partition_id is not null or has_wildcard
-        , []
-        , generate_date_array('2020-01-01', '2022-01-01'))
+        if(
+          partition_id is not null or has_wildcard
+          , []
+          , (
+            select as value
+              generate_date_array(
+                min(parse_date('%Y%m%d', least(a.destination, src)))
+                , max(parse_date('%Y%m%d', greatest(a.destination, src)))
+              )
+            from unnest(partition_alignments) a
+            left join unnest(a.sources) src
+          )
+        )
       ) as _pseudo_date
       where
         table_name = argument or starts_with(table_name, pattern)
