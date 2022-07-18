@@ -14,7 +14,7 @@ create or replace procedure `fn.extract_staled_partitions`(
     , sources array<string>
   >>
   , options struct<
-    max_delay interval
+    tolerate_delay interval
   >
   , out ret struct<begins_at date, ends_at date>
 )
@@ -75,8 +75,8 @@ begin
           , (
             select as value
               generate_date_array(
-                min(parse_date('%Y%m%d', least(a.destination, src)))
-                , max(parse_date('%Y%m%d', greatest(a.destination, src)))
+                min(ifnull(safe.parse_date('%Y%m%d', least(a.destination, src)), error("Support only date format YYYYMMDD")))
+                , max(ifnull(safe.parse_date('%Y%m%d', greatest(a.destination, src)), error("Support only date format YYYYMMDD")))
               )
             from unnest(partition_alignments) a
             left join unnest(a.sources) src
@@ -102,11 +102,15 @@ begin
     )
 
     select as struct
-      min(destination.partition_date), max(destination.partition_date)
+      min(destination.partition_date)
+      , max(destination.partition_date)
     from aligned
-    where destination.last_modified_time <= source.last_modified_time
+    where
+      destination.last_modified_time <= source.last_modified_time + tolerate_delay
+      -- Resolve partition delays enough after tolerate delay goes
+      or (
+        destination.last_modified_time <= source.last_modified_time
+        and destination.last_modified_time <= current_timestamp() - tolerate_delay
+      )
   );
 end;
-
--- call `fn.extract_staled_partitions`(destination, sources, alignemnts, null, ret);
--- select ret;
