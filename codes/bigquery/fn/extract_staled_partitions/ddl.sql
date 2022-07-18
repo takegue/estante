@@ -1,5 +1,6 @@
 create or replace procedure `fn.extract_staled_partitions`(
-  destination struct<
+  out ret array<string>
+  , destination struct<
     project_id string
     , dataset_id string
     , table_id string
@@ -16,7 +17,6 @@ create or replace procedure `fn.extract_staled_partitions`(
   , options struct<
     tolerate_delay interval
   >
-  , out ret struct<begins_at date, ends_at date>
 )
 begin
   -- Prepare metadata from  INFOMARTION_SCHEMA.PARTITIONS
@@ -50,18 +50,23 @@ begin
 
   -- alignment and extract staled partition
   set ret = (
+    -- partition_id -> (null, null) -> ('__NULL__', '__NULL__')
+    -- partition_id -> (null, date) -> (_pseudo_date, date)
+    -- partition_id -> (date, null) -> (date, _pseudo_date)
+    -- partition_id -> (date, date) -> (date, date)
+
     with
     pseudo_partition as (
       SELECT
-        * replace(
-          coalesce(
+        label
+        , coalesce(
             partition_id
             , if(has_wildcard, regexp_replace(table_name, format('^%s', pattern), ''), null)
             , format_date('%Y%m%d', _pseudo_date)
+            , '__NULL__'
           )
           as partition_id
-        )
-        , struct(partition_id, PARSE_DATE('%Y%m%d', partition_id) as partition_date, table_catalog, table_schema, table_name, last_modified_time)
+        , struct(partition_id, table_catalog, table_schema, table_name, last_modified_time)
           as alignment_paylod
       from _partitions_temp
       left join unnest([struct(
@@ -75,11 +80,15 @@ begin
           , (
             select as value
               generate_date_array(
-                min(ifnull(safe.parse_date('%Y%m%d', least(a.destination, src)), error("Support only date format YYYYMMDD")))
-                , max(ifnull(safe.parse_date('%Y%m%d', greatest(a.destination, src)), error("Support only date format YYYYMMDD")))
+                min(safe.parse_date('%Y%m%d', least(d, s)))
+                , max(safe.parse_date('%Y%m%d', greatest(d, s)))
               )
             from unnest(partition_alignments) a
             left join unnest(a.sources) src
+            left join unnest([struct(
+              nullif(a.destination, '__NULL__') as d
+              , nullif(src, '__NULL__') as s
+            )])
           )
         )
       ) as _pseudo_date
@@ -87,7 +96,8 @@ begin
         table_name = argument or starts_with(table_name, pattern)
     )
     , argument_alignment as (
-      select a.destination as partition_id, source as source_partition_id from unnest(partition_alignments) a, unnest(a.sources) as source
+      select a.destination as partition_id, source as source_partition_id
+      from unnest(partition_alignments) a, unnest(a.sources) as source
     )
     , aligned as (
       select
@@ -101,16 +111,16 @@ begin
         on source_partition_id = source.partition_id
     )
 
-    select as struct
-      min(destination.partition_date)
-      , max(destination.partition_date)
+    select
+      array_agg(distinct partition_id order by partition_id)
     from aligned
+    left join unnest([ifnull(destination.partition_id, '__NULL__')]) as partition_id
     where
-      destination.last_modified_time <= source.last_modified_time + tolerate_delay
+      destination.last_modified_time <= source.last_modified_time - options.tolerate_delay
       -- Resolve partition delays enough after tolerate delay goes
       or (
         destination.last_modified_time <= source.last_modified_time
-        and destination.last_modified_time <= current_timestamp() - tolerate_delay
+        and destination.last_modified_time <= current_timestamp() - options.tolerate_delay
       )
   );
 end;
