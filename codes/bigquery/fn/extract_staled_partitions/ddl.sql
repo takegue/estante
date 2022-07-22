@@ -19,6 +19,8 @@ create or replace procedure `fn.extract_staled_partitions`(
   >
 )
 begin
+  declare opt_tolerate_delay interval default ifnull(options.tolerate_delay, interval 1 hour);
+
   -- Prepare metadata from  INFOMARTION_SCHEMA.PARTITIONS
   execute immediate (
     select as value
@@ -116,11 +118,11 @@ begin
     from aligned
     left join unnest([ifnull(destination.partition_id, '__NULL__')]) as partition_id
     where
-      destination.last_modified_time <= source.last_modified_time - options.tolerate_delay
+      destination.last_modified_time <= source.last_modified_time - opt_tolerate_delay
       -- Resolve partition delays enough after tolerate delay goes
       or (
         destination.last_modified_time <= source.last_modified_time
-        and destination.last_modified_time <= current_timestamp() - options.tolerate_delay
+        and destination.last_modified_time <= current_timestamp() - opt_tolerate_delay
       )
   );
 end;
