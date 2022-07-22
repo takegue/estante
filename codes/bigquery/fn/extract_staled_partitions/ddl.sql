@@ -27,7 +27,10 @@ begin
       "create or replace temp table `_partitions_temp` as "
       || string_agg(
         format("""
-          select '%s' as label, '%s' as argument,  *
+          select
+            '%s' as label
+            , '%s' as argument
+            , *
           from `%s.%s.INFORMATION_SCHEMA.PARTITIONS`
           where %s
           """
@@ -98,13 +101,17 @@ begin
         table_name = argument or starts_with(table_name, pattern)
     )
     , argument_alignment as (
-      select a.destination as partition_id, source as source_partition_id
+      select a.destination as partition_id, array_length(a.sources) as n_sources, source as source_partition_id
       from unnest(partition_alignments) a, unnest(a.sources) as source
     )
     , aligned as (
       select
         destination.alignment_paylod as destination
         , source.alignment_paylod as source
+        , -- # of source kind * # of source partition
+        array_length(sources) * n_sources
+        = countif(source.partition_id is not null) over (partition by destination.partition_id)
+          as is_ready_every_sources
       from
         (select * from pseudo_partition where label = 'destination') as destination
       join argument_alignment using(partition_id)
@@ -118,11 +125,14 @@ begin
     from aligned
     left join unnest([ifnull(destination.partition_id, '__NULL__')]) as partition_id
     where
-      destination.last_modified_time <= source.last_modified_time - opt_tolerate_delay
-      -- Resolve partition delays enough after tolerate delay goes
-      or (
-        destination.last_modified_time <= source.last_modified_time
-        and destination.last_modified_time <= current_timestamp() - opt_tolerate_delay
+      is_ready_every_sources
+      and (
+        destination.last_modified_time <= source.last_modified_time - opt_tolerate_delay
+        -- Resolve partition delays enough after tolerate delay goes
+        or (
+          destination.last_modified_time <= source.last_modified_time
+          and source.last_modified_time <= current_timestamp() - opt_tolerate_delay
+        )
       )
   );
 end;
