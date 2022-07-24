@@ -16,10 +16,12 @@ create or replace procedure `fn.extract_staled_partitions`(
   >>
   , options struct<
     tolerate_delay interval
+    , null_value string
   >
 )
 begin
   declare opt_tolerate_delay interval default ifnull(options.tolerate_delay, interval 1 hour);
+  declare opt_null_value string default ifnull(options.null_value, '__NULL__');
 
   -- Prepare metadata from  INFOMARTION_SCHEMA.PARTITIONS
   execute immediate (
@@ -68,7 +70,7 @@ begin
             partition_id
             , if(has_wildcard, regexp_replace(table_name, format('^%s', pattern), ''), null)
             , format_date('%Y%m%d', _pseudo_date)
-            , '__NULL__'
+            , opt_null_value
           )
           as partition_id
         , struct(partition_id, table_catalog, table_schema, table_name, last_modified_time)
@@ -91,8 +93,8 @@ begin
             from unnest(partition_alignments) a
             left join unnest(a.sources) src
             left join unnest([struct(
-              nullif(a.destination, '__NULL__') as d
-              , nullif(src, '__NULL__') as s
+              nullif(a.destination, opt_null_value) as d
+              , nullif(src, opt_null_value) as s
             )])
           )
         )
@@ -123,7 +125,7 @@ begin
     select
       array_agg(distinct partition_id order by partition_id)
     from aligned
-    left join unnest([ifnull(destination.partition_id, '__NULL__')]) as partition_id
+    left join unnest([ifnull(destination.partition_id, opt_null_value)]) as partition_id
     where
       is_ready_every_sources
       and (

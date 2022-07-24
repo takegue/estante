@@ -28,10 +28,8 @@ begin
       )
     from `region-us.INFORMATION_SCHEMA.JOBS_BY_USER`
     where
-
       job_id = last_job_id
       and date(creation_time) = current_date()
     order by start_time desc
   );
-
 end

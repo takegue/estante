@@ -17,14 +17,15 @@ create or replace procedure `fn.check_and_update_table`(
     query string
     , dry_run boolean
     , tolerate_delay interval
-    , max_update_interval interval
+    , max_update_interval int64
     , via_temp_table boolean
   >
 )
 begin
   declare staled_partitions array<string>;
   declare partition_range struct<begins_at string, ends_at string>;
-  declare partition_key string;
+  declare partition_column struct<name string, type string>;
+  declare partition_unit string;
 
   call `fn.extract_staled_partitions`(
     staled_partitions
@@ -39,7 +40,7 @@ begin
   end if;
 
   set partition_range = (
-    -- Extract first successive partition range to be update from staled_partitions.
+    -- Extract first successive partition_range with
     with gap as (
       select
         p
@@ -52,38 +53,82 @@ begin
           -- null or __NULL__
           , true
         ) as has_gap
+        , update_partition
       from unnest(staled_partitions) p
       left join unnest([struct(
         safe.parse_date('%Y%m%d', p) as partition_date
         , safe.parse_datetime('%Y%m%d%h', p) as partition_hour
         , safe_cast(p as int64) as partition_int
       )])
+      left join unnest([struct(
+        coalesce(
+          format_date('%Y%m%d', date(partition_date - interval update_job.max_update_interval day))
+          , format_datetime('%Y%m%d%h', partition_hour - interval update_job.max_update_interval hour)
+          , cast(partition_int - update_job.max_update_interval as string)
+        ) as update_partition
+      )])
     )
     , first_successive_partitions as (
-      select * from gap
+      select *, if(has_gap, update_partition, null) as max_update_partition from gap
       qualify sum(if(has_gap, 1, 0)) over (order by p desc) = 1
     )
-    select min(p), max(p) from first_successive_partitions
+    select as struct
+      -- if update_job.max_update_interval is null, then use non-limited partition
+      ifnull(greatest(min(p), max(max_update_partition)) , min(p))
+      , max(p)
+    from first_successive_partitions
   );
-
   -- Get partition column
-  call `fn.get_table_partition_column`(destination, partition_key);
+  call `fn.get_table_partition_column`(destination, partition_column);
 
   -- Run Update Job
   if update_job.dry_run then
+    select
+      format('%P', to_json(struct(
+        destination
+        , sources
+        , update_job
+        , partition_range
+    )))
+    ;
     return;
   end if;
 
-  if update_job.via_temp_table then
+  -- Format parition_id into datetime or date parsable string like '2022-01-01'
+  set (partition_unit, partition_range) = (
+    case
+      when safe.parse_datetime('%Y%m%d%H', partition_range.begins_at) is not null then 'HOUR'
+      when safe.parse_datetime('%Y%m%d', partition_range.begins_at) is not null then 'DAY'
+      when safe.parse_datetime('%Y%m', partition_range.begins_at) is not null then 'MONTH'
+      when safe.parse_datetime('%Y', partition_range.begins_at) is not null then 'YEAR'
+      else error(format('Invalid partition_id: %s', partition_range.begins_at))
+    end
+    , (
+      coalesce(
+        format_datetime('%Y-%m-%d %T', safe.parse_datetime('%Y%m%d%H', partition_range.begins_at))
+        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m%d', partition_range.begins_at))
+        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m', partition_range.begins_at))
+        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y', partition_range.begins_at))
+      )
+      , coalesce(
+        format_datetime('%Y-%m-%d %T', safe.parse_datetime('%Y%m%d%H', partition_range.ends_at))
+        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m%d', partition_range.ends_at))
+        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y%m', partition_range.ends_at))
+        , format_datetime('%Y-%m-%d', safe.parse_datetime('%Y', partition_range.ends_at))
+      )
+    )
+  );
+
+  if ifnull(update_job.via_temp_table, false) then
     execute immediate format("""
-      create or replace temp table temp_tables
-      as
+      create or replace temp table temp_table as
         %s
       """
       , update_job.query
     ) using
       partition_range.begins_at as begins_at
       , partition_range.ends_at as ends_at
+    ;
   end if;
 
   execute immediate ifnull(format("""
@@ -108,10 +153,22 @@ begin
         ), 'invalid destination'
       )
       , if(ifnull(update_job.via_temp_table, false), 'temp_table', update_job.query)
-      , ifnull(format("%s between @begins_at and @ends_at", partition_key), "true")
+      , case
+          when partition_unit = 'DAY' then
+            format(
+              "DATE(%s) between @begins_at and @ends_at"
+              , partition_column.name
+            )
+          when partition_unit in ('HOUR', 'MONTH', 'YEAR') then
+            format(
+              "%s_TRUNC(%s, %s) between @begins_at and @ends_at"
+              , partition_column.type, partition_column.name, partition_unit
+            )
+          else 'true'
+        end
     )
     , error(format(
-      "arguments is invalud: %T", (destination, partition_key, partition_range)
+      "arguments is invalud: %T", (destination, partition_column.name, partition_range)
     ))
   )
     using
@@ -119,4 +176,7 @@ begin
       , partition_range.ends_at as ends_at
   ;
 
+  if @@row_count = 0 then
+    RAISE format('No data to update: %%', (update_job.query, partition_range));
+  end if;
 end;
