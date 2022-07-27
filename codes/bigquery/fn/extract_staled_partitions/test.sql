@@ -48,7 +48,17 @@ call `fn.extract_staled_partitions`(
   , (null, "zpreview_test", "dest1")
   , [(string(null), "zpreview_test", "ref_*")]
   , [("20060102", ["20060102"])]
-  , struct(interval 0 hour)
+  , struct(interval 0 hour, null)
+);
+
+assert ret[safe_offset(0)] = '20060102';
+
+call `fn.extract_staled_partitions`(
+  ret
+  , (null, "zpreview_test", "dest2")
+  , [(string(null), "zpreview_test", "ref_1")]
+  , [("20060102", ["20060102"])]
+  , struct(interval 0 hour, null)
 );
 
 assert ret[safe_offset(0)] = '20060102';
@@ -59,7 +69,7 @@ call `fn.extract_staled_partitions`(
   , (null, "zpreview_test", "dest1")
   , [(string(null), "zpreview_test", "ref1")]
   , [("20060102", ["20060102"])]
-  , struct(interval 0 hour)
+  , struct(interval 0 hour, null)
 );
 
 assert ret[safe_offset(0)] = '20060102';
@@ -72,7 +82,7 @@ call `fn.extract_staled_partitions`(
       , (string(null), "zpreview_test", "ref2")
     ]
   , [("20060102", ["20060102"])]
-  , struct(interval 0 hour)
+  , struct(interval 0 hour, null)
 );
 
 assert ret[safe_offset(0)] is null
@@ -83,7 +93,7 @@ call `fn.extract_staled_partitions`(
   , (null, "zpreview_test", "dest1")
   , [(string(null), "zpreview_test", "ref_no_partition")]
   , [('20060102', ["__NULL__"])]
-  , struct(interval 0 hour)
+  , struct(interval 0 hour, null)
 );
 
 assert ret[safe_offset(0)] = '20060102';
@@ -93,7 +103,7 @@ call `fn.extract_staled_partitions`(
   , (null, "zpreview_test", "dest_no_partition")
   , [(string(null), "zpreview_test", "ref_no_partition")]
   , [('__NULL__', ["__NULL__"])]
-  , struct(interval 0 hour)
+  , struct(interval 0 hour, null)
 );
 
 assert ret[safe_offset(0)] = '__NULL__';
