@@ -51,7 +51,10 @@ begin
         ,
         "  select\n"
         || "   partition_key\n"
-        || format(", nullif(format('%%t', (%s)), '') as group_keys\n", array_to_string(ifnull(group_keys, []), ', '))
+        || ifnull(
+          format(", nullif(format('%%t', (%s)), '') as group_keys\n"
+            , array_to_string(group_keys, ', '))
+          , ', null as group_keys\n')
         || '   , count(1) as count\n'
         || string_agg(
             trim(replace(
@@ -151,7 +154,7 @@ begin
       )]) as template
       left join unnest([struct(
         case
-          when data_type in ('INT64', 'NUMERIC', 'BIGNUMERIC', 'FLOAT64')
+          when data_type in ('INT64', 'NUMERIC', 'BIGNUMERIC')
             then template.number
           when data_type in ('FLOAT64')
             then template.float
