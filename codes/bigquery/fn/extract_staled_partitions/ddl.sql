@@ -136,10 +136,15 @@ begin
     left join unnest([ifnull(destination.partition_id, opt_null_value)]) as partition_id
     where
       is_ready_every_sources
-      and ifnull(
-        destination.last_modified_time <= source.last_modified_time
+      and (
+        -- Cerate destination partition if it does not exist
+        destination.last_modified_time is null
+        -- Update destination partition if it is older than tolerate_delay
+        or source.last_modified_time - opt_tolerate_delay >= destination.last_modified_time
+        -- Keep destination freshness after source is enough stable
+        or (
+          source.last_modified_time >= destination.last_modified_time
           and source.last_modified_time <= current_timestamp() - opt_tolerate_delay
-        , true
-      )
+        )
   );
 end;
