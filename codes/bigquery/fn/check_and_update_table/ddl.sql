@@ -22,20 +22,20 @@ create or replace procedure `fn.check_and_update_table`(
   >
 )
 begin
-  declare staled_partitions array<string>;
+  declare stale_partitions array<string>;
   declare partition_range struct<begins_at string, ends_at string>;
   declare partition_column struct<name string, type string>;
   declare partition_unit string;
 
-  call `fn.extract_staled_partitions`(
-    staled_partitions
+  call `fn.extract_stale_partitions`(
+    stale_partitions
     , destination
     , sources
     , partition_alignments
     , struct(update_job.tolerate_delay)
   );
 
-  if ifnull(array_length(staled_partitions), 0) = 0 then
+  if ifnull(array_length(stale_partitions), 0) = 0 then
     return;
   end if;
 
@@ -54,7 +54,7 @@ begin
           , true
         ) as has_gap
         , update_partition
-      from unnest(staled_partitions) p
+      from unnest(stale_partitions) p
       left join unnest([struct(
         safe.parse_date('%Y%m%d', p) as partition_date
         , safe.parse_datetime('%Y%m%d%h', p) as partition_hour

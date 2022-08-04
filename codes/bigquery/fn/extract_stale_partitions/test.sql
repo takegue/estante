@@ -33,7 +33,7 @@ create or replace table `zpreview_test.ref_no_partition`
 as select date '2006-01-02' as date_jst
 ;
 
-call `fn.extract_staled_partitions`(
+call `fn.extract_stale_partitions`(
   ret
   , (null, "zpreview_test", "dest1")
   , [(string(null), "zpreview_test", "ref1")]
@@ -43,7 +43,7 @@ call `fn.extract_staled_partitions`(
 
 assert ret[safe_offset(0)] is null;
 
-call `fn.extract_staled_partitions`(
+call `fn.extract_stale_partitions`(
   ret
   , (null, "zpreview_test", "dest1")
   , [(string(null), "zpreview_test", "ref_*")]
@@ -53,7 +53,7 @@ call `fn.extract_staled_partitions`(
 
 assert ret[safe_offset(0)] = '20060102';
 
-call `fn.extract_staled_partitions`(
+call `fn.extract_stale_partitions`(
   ret
   , (null, "zpreview_test", "dest2")
   , [(string(null), "zpreview_test", "ref_1")]
@@ -64,7 +64,7 @@ call `fn.extract_staled_partitions`(
 assert ret[safe_offset(0)] = '20060102';
 
 
-call `fn.extract_staled_partitions`(
+call `fn.extract_stale_partitions`(
   ret
   , (null, "zpreview_test", "dest1")
   , [(string(null), "zpreview_test", "ref1")]
@@ -74,7 +74,7 @@ call `fn.extract_staled_partitions`(
 
 assert ret[safe_offset(0)] = '20060102';
 
-call `fn.extract_staled_partitions`(
+call `fn.extract_stale_partitions`(
   ret
   , (null, "zpreview_test", "dest1")
   , [
@@ -88,7 +88,7 @@ call `fn.extract_staled_partitions`(
 assert ret[safe_offset(0)] is null
   as "invalidate destination partition under some source's partition is available";
 
-call `fn.extract_staled_partitions`(
+call `fn.extract_stale_partitions`(
   ret
   , (null, "zpreview_test", "dest1")
   , [(string(null), "zpreview_test", "ref_no_partition")]
@@ -98,7 +98,7 @@ call `fn.extract_staled_partitions`(
 
 assert ret[safe_offset(0)] = '20060102';
 
-call `fn.extract_staled_partitions`(
+call `fn.extract_stale_partitions`(
   ret
   , (null, "zpreview_test", "dest_no_partition")
   , [(string(null), "zpreview_test", "ref_no_partition")]
