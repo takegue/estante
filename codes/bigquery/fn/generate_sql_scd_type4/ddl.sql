@@ -44,7 +44,7 @@ begin
           )
             -- template
             select
-              unique_key
+              %s
               , c.column_name
               , c.column_type
               , version_hash as version_hash
@@ -77,7 +77,9 @@ begin
             where
               c.column_name != '_name'
           """
-          , dataset_ref, table_name
+          , unique_key
+          , dataset_ref
+          , table_name
           , string_agg(
               format('("%s", "%s", (%s))'
                 , column_name
@@ -97,7 +99,7 @@ begin
                 ]
                 , ", "
             ))
-            , "\n, "
+            , "\n        , "
           )
         ) as query
       from _tmp_table_columns
