@@ -1,35 +1,71 @@
+declare ret array<struct<project_id string, dataset_id string, table_id string>>;
+
 create or replace procedure `fn.get_query_referenced_tables`(
-  in query string
-  , out ret array<struct<project_id string, dataset_id string, table_id string>>
+  out ret array<struct<project_id string, dataset_id string, table_id string>>
+  , in query string
+  , in options JSON
 )
 options(
-  description='''Get referenced tables from query
+  description='''Get referenced tables by query
 
-Arguments
-=====
-  - query: a query to be analyzed. Recommended to use no-scan bytes query or query raising error to avoid billing.
-  - ret: return value. referenced_tables
+  Arguments:
+  ===
+    ret: output variable to store the referenced tables
+    query: query to analyize
   '''
 )
 begin
   declare last_job_id string;
+  declare enable_query_rewrite bool default ifnull(bool(options.enable_query_rewrite), false);
+  declare default_region string default ifnull(string(options.default_region), "region-us");
+
   begin
-    execute immediate query;
+    execute immediate
+      if(
+        enable_query_rewrite
+        ,
+          regexp_replace(
+            if(
+                not contains_substr(query, "limit")
+              , query || ' limit 0'
+              , query
+            )
+            -- Add error column for simple query
+            , r"^\s*[sS][eE][lL][eE][cC][tT]"
+            , "select error('intentional error for reference check'), "
+          )
+        , query
+      )
+    ;
   exception when error then
   end;
   set last_job_id = @@last_job_id;
+  select last_job_id;
 
-  set ret = (
-    select as value
-      if(
-        cache_hit
-        , error("Inproper reference due to cache_hit=true. Avoid to use query cached. Referer https://cloud.google.com/bigquery/docs/cached-results#cache-exceptions")
-        , referenced_tables
-      )
-    from `region-us.INFORMATION_SCHEMA.JOBS_BY_USER`
-    where
-      job_id = last_job_id
-      and date(creation_time) = current_date()
-    order by start_time desc
-  );
+  execute immediate ifnull(format("""
+      select
+        if(
+          cache_hit
+          , error("Inproper reference due to cache_hit=true. Avoid to use query cached. Referer https://cloud.google.com/bigquery/docs/cached-results#cache-exceptions")
+          , referenced_tables
+        )
+      from `%s.%s.INFORMATION_SCHEMA.JOBS_BY_USER`
+      where
+        job_id = "%s"
+        and date(creation_time) = current_date()
+      order by start_time desc
+      limit 1
+      """
+      , @@project_id
+      , ifnull(default_region, 'region-us')
+      , last_job_id
+    )
+    , error(format("Invalid Argumenrts: %t", (@@project_id, default_region, last_job_id)))
+  )
+    into ret;
 end
+;
+
+-- Test
+call `fn.get_query_referenced_tables`(ret, "select * from sandbox.sample_view", JSON '{"enable_query_rewrite": true}');
+select ret;
