@@ -12,6 +12,9 @@ options(
   ===
     ret: output variable to store the referenced tables
     query: query to analyize
+    optiosn:
+      enable_query_rewrite: Enable dynamic query rewrite to minimize slot or billing scan amount (default: false)
+      default_region: region-us (default: "region-us")
   '''
 )
 begin
@@ -40,7 +43,6 @@ begin
   exception when error then
   end;
   set last_job_id = @@last_job_id;
-  select last_job_id;
 
   execute immediate ifnull(format("""
       select
