@@ -1,4 +1,3 @@
--- Create or snapshot table
 create or replace procedure `fn.create_or_update_snapshot_table`(
   destination struct<
     project_id string
@@ -28,6 +27,7 @@ begin
   declare snapshot_at timestamp default current_timestamp();
   declare stale_partitions array<string>;
   declare source_dependencies array<struct<project_id string, dataset_id string, table_id string>>;
+  declare _past_processed int64;
 
   set snapshot_query = ifnull(
   format("""
@@ -43,7 +43,7 @@ begin
         , (select as value generate_uuid()) as version_hash
       """
       , exp_unique_key
-      , destination_ref
+      , source_ref
     )
     , error(format("Invalid argument: %t", source))
   );
@@ -51,7 +51,7 @@ begin
   -- Checked referenced tables
   call `fn.get_query_referenced_tables`(
     source_dependencies
-    , format("select error('intended') from `%s` limit 0", source_ref)
+    , format("select error('intended') from `%s` limit 1", source_ref)
     , null
   );
 
@@ -68,6 +68,8 @@ begin
   end if;
 
   set snapshot_at = current_timestamp();
+  set _past_processed = @@script.bytes_processed;
+
   execute immediate format("""
     create table if not exists `%s`
     partition by DATE(valid_to)
@@ -78,6 +80,12 @@ begin
     , snapshot_query
   )
     using snapshot_at as timestamp;
+
+  -- If Table is created, early return
+  if @@script.bytes_processed - _past_processed > 10 then
+    return;
+  end if
+  ;
 
   execute immediate format("""
     merge `%s` T
