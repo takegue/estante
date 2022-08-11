@@ -1,5 +1,5 @@
 create or replace procedure `fn.generate_sql_scd_type4`(
-  out ret string
+  out ret struct<snapshot_query string, recover_query string>
   , in destination struct<project string, dataset string, table string>
   , in unique_key string
   , in options array<struct<key string, value string>>
@@ -101,7 +101,22 @@ begin
             ))
             , "\n        , "
           )
-        ) as query
+        ) as snapshot_query
+        , format("""
+          select
+            %s as unique_key
+            , %s
+          from `%%s.%%s.%%s`
+          where
+            valid_to is null
+          group by unique_key
+        """
+          , unique_key
+          , string_agg(
+            format(", max(if(column_name = '%s', column_value.%s, null)) as %s", field_path, lower(data_type), field_path)
+            , '\n'
+          )
+        ) as recover_query
       from _tmp_table_columns
       where
         -- Filter unsuported types
@@ -110,7 +125,6 @@ begin
       group by table_catalog, table_schema, table_name
     )
 
-    select ddl.query from ddl
+    select as struct snapshot_query, recover_query from ddl
   );
-
 end;
