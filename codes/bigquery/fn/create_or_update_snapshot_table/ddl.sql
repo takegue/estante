@@ -82,7 +82,7 @@ begin
     using snapshot_at as timestamp;
 
   -- If Table is created, early return
-  if @@script.bytes_processed - _past_processed > 10 then
+  if @@script.bytes_processed - _past_processed > 100 then
     return;
   end if
   ;
@@ -104,8 +104,8 @@ begin
     when
       not matched by source
       and T.valid_to is null then
-      update set
-        valid_to = @timestamp
+        update set
+          valid_to = @timestamp
   """
     , destination_ref
     , snapshot_query
