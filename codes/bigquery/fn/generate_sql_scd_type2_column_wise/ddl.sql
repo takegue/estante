@@ -1,4 +1,4 @@
-create or replace procedure `fn.generate_sql_scd_type4`(
+create or replace procedure `fn.generate_sql_scd_type2_column_wise`(
   out ret struct<snapshot_query string, recover_query string>
   , in destination struct<project string, dataset string, table string>
   , in unique_key string
