@@ -26,17 +26,7 @@ begin
     execute immediate
       if(
         enable_query_rewrite
-        ,
-          regexp_replace(
-            if(
-                not contains_substr(query, "limit")
-              , query || ' limit 0'
-              , query
-            )
-            -- Add error column for simple query
-            , r"^\s*[sS][eE][lL][eE][cC][tT]"
-            , "select error('intentional error for reference check'), "
-          )
+        , format("with Q as (%s) select error('Intentional Error')", query)
         , query
       )
     ;
