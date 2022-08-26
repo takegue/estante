@@ -38,7 +38,6 @@ begin
 
   set snapshot_query = ifnull(
     format("""
-      -- Snapshot Templated Query
       select
         %s as unique_key
         , version_hash
@@ -65,7 +64,7 @@ begin
       """
       , destination_ref
       , snapshot_query
-    )
+    ) as create_ddl
     -- DML Query
     , format("""
         merge `%s` T
@@ -89,7 +88,20 @@ begin
       """
       , destination_ref
       , snapshot_query
-    )
+    ) as update_dml
+    -- TVF DDL for Access
+    , format("""
+        create or replace table function `%s`(_at timestamp)
+        as
+          select * from `%s`
+        where
+          ifnull(
+            valid_from <= `_at` and `_at` < valid_to
+            , valid_to is null
+          )
+      """
+      , destination_ref
+    ) as access_tvf_ddl
   );
 
 end
