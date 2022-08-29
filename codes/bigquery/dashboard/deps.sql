@@ -1,21 +1,26 @@
+-- BigQuery Table Depdencies
+-- depth = -1 means query destination tables in ordinal usage
 with recursive lineage as (
   select
     format('%s.%s.%s', dst_project, dst_dataset, dst_table) as destination
     , 0 as depth
-    , relations.*
+    , relations.* except(unique_key)
   from relations
+  where unique_key not like '%(User)%'
+    and not starts_with(dst_table, '_')
+    and not starts_with(dst_dataset, '_script')
   union all
   select
     destination
     , depth + 1 as depth
-    , relations.*
+    , lineage.src_project as dst_project
+    , lineage.src_dataset as dst_dataset
+    , lineage.src_table as dst_table
+    , relations.* except(dst_project, dst_dataset, dst_table, unique_key)
   from lineage
     join relations
       on (relations.dst_project, relations.dst_dataset, relations.dst_table)
        = (lineage.src_project, lineage.src_dataset, lineage.src_table)
-  where
-    -- FIXME: surpress duplicate join
-    depth < 5
 )
 , job as (
   select
@@ -25,6 +30,7 @@ with recursive lineage as (
     , end_time - start_time as processed_time
     , start_time - creation_time as wait_time
     , query
+    , statement_type
     , total_bytes_processed
     , total_slot_ms
     , destination_table
@@ -34,12 +40,14 @@ with recursive lineage as (
     destination_table.table_id is not null
     and error_result.reason is null
     and state = 'DONE'
-    -- Excldue anonymous or temporarily dataset
-    and not starts_with(destination_table.dataset_id, '_')
 )
 , relations as (
   select
-    format('%t <- %t', destination_table, ref) as unique_key
+    if(
+      is_temporary and is_anonymous_query
+      , format('(User) -> %t', ref)
+      , format('%t <- %t', destination_table, ref)
+    ) as unique_key
     , any_value(destination_table).project_id as dst_project
     , any_value(destination_table).dataset_id as dst_dataset
     , any_value(normalized_dst_table) as dst_table
@@ -48,7 +56,7 @@ with recursive lineage as (
     , any_value(normalized_ref_table) as src_table
 
     , max(creation_time) as job_latest
-
+    , approx_top_sum(query, unix_seconds(creation_time), 10)[safe_offset(0)].value as query
     , approx_count_distinct(user_email) as n_user
     , approx_count_distinct(query) as n_queries
     , approx_count_distinct(job_id) as n_job
@@ -60,8 +68,7 @@ with recursive lineage as (
     , sum(total_slot_ms) as total_slots_ms
     , approx_quantiles(total_slot_ms, 10) as total_slots_ms__quantiles
 
-  from job
-    left join unnest(referenced_tables) as ref
+  from job, unnest(referenced_tables) as ref
     left join unnest([struct(
       extract(millisecond from processed_time)
         + extract(second from processed_time) * 1000
@@ -75,13 +82,35 @@ with recursive lineage as (
       as wait_time_ms
       , regexp_extract(ref.table_id, r'\d+$') as _src_suffix_number
       , regexp_extract(destination_table.table_id, r'\d+$') as _dst_suffix_number
+      , destination_table = ref as is_self_reference
+      , starts_with(destination_table.dataset_id, '_') and char_length(destination_table.dataset_id) > 40 as is_temporary
+      , starts_with(destination_table.table_id, 'anon') as is_anonymous_query
     )])
     left join unnest([struct(
       if(safe.parse_date('%Y%m%d', _src_suffix_number) is not null, regexp_replace(ref.table_id, r'\d+$', '*'), ref.table_id) as normalized_ref_table
       , if(safe.parse_date('%Y%m%d', _dst_suffix_number) is not null, regexp_replace(destination_table.table_id, r'\d+$', '*'), destination_table.table_id) as normalized_dst_table
     )])
-
+  where
+    not is_self_reference
+    and not statement_type in ('INSERT', 'DELETE', 'ALTER_TABLE', 'DROP_TABLE')
+    and statement_type is not null
   group by unique_key
 )
+, user_query as (
+  select
+    format('%s.%s.%s', src_project, src_dataset, src_table) as destination
+    , -1 as depth
+    , dst_project  as dst_project
+    , string(null) as dst_dataset
+    , string(null) as dst_table
+    , relations.* except(unique_key, dst_project, dst_dataset, dst_table)
+  from relations
+  where starts_with(unique_key, '(User)')
+    and not starts_with(src_table, '_')
+    and not starts_with(src_dataset, '_script')
+  union all
+  select * from lineage
+)
 
-select * from lineage
+select * from user_query
+order by destination, depth
