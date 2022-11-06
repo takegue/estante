@@ -35,7 +35,7 @@ with recursive lineage as (
     , total_slot_ms
     , destination_table
     , referenced_tables
-  from `project-id-7288898082930342315.region-us.INFORMATION_SCHEMA.JOBS_BY_PROJECT`
+  from `region-us.INFORMATION_SCHEMA.JOBS_BY_PROJECT`
   where
     destination_table.table_id is not null
     and error_result.reason is null

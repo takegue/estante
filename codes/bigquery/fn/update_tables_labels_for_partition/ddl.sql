@@ -1,4 +1,3 @@
-declare labels array<struct<key string, value string>>;
 create or replace procedure `fn.update_tables_labels_for_partition`(
   in destination struct<project string, dataset string>
 )
@@ -88,4 +87,7 @@ begin
 end;
 
 
-call `fn.update_table_labels_partition`((null, 'zpreview_test'))
+begin
+  declare labels array<struct<key string, value string>>;
+  call `fn.update_table_labels_partition`((null, 'zpreview_test'))
+end
