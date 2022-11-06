@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "build": "node ./generate.js"
+    "build": "wasm-pack build --release --target no-modules && node ./generate.js"
   },
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "1.5.0",
