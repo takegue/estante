@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@tsconfig/strictest": "^1.0.2",
+    "tree-sitter-sql-bigquery": "^0.1.5",
+    "vitest": "^0.25.3"
+  }
+}

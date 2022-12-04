@@ -1,0 +1,20 @@
+{
+  "extends": "@tsconfig/strictest/tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "esnext",
+    "incremental": true,
+    "moduleResolution": "node",
+    "declaration": true,
+    "paths": {
+      "*": ["./src/*.d.ts"]
+    },
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "outDir": "dist/src"
+  },
+  "include": [
+    "./src"
+  ]
+}
