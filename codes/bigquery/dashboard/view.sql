@@ -5,6 +5,7 @@ partition by date(time_id)
 cluster by unit
 as
 */
+
 with
  datasource as (
   select
@@ -142,10 +143,10 @@ with
       --     if(true, null, context.user) as user
       --   , if(false, null, context.item) as item
       --   , if(false, null, context.time) as time
-    )]) as segments
+    ]) as segments
     -- marginalization for units
-    -- left join unnest([struct('item' as unit, units.item_id as id), null]) as item
-    -- left join unnest([struct('user' as unit, units.user_id as id), null]) as user
+    left join unnest([struct('item' as unit, units.item_id as id), null]) as item
+     left join unnest([struct('user' as unit, units.user_id as id), null]) as user
     left join unnest([
       struct('week' as unit, datetime(timestamp_trunc(units.time_id, week)) as id)
       , struct('day'  as unit, datetime(date(units.time_id)) as id)
@@ -166,8 +167,6 @@ select
   , units.time.id as time_id
   , units.user.id as user_id
   , units.item.id as item_id
-  , struct(
-  )
-  , fn.json_pretty_kv(fn.json_trim_empty(to_json_string(segments)), ', ', null) as segment_label
+#  , `fn.json_pretty_kv`(`fn.json_trim_empty`(to_json_string(segments)), ', ', null) as segment_label
   , * except(units)
 from core_stats
