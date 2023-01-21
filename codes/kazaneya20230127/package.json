@@ -3,6 +3,6 @@
     "bigquery-porter": "^0.2.4"
   },
   "scripts": {
-    "deploy": "bqport format && bqport push"
+    "deploy": "bqport format && bqport push --dry-run && bqport push"
   }
 }

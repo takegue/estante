@@ -1,7 +1,6 @@
-create or replace function `kazaneya_techtalk.json_pretty_kv`(json string, delimiter string, `limit` int64)
-returns string
-language js
-as r"""
+CREATE OR REPLACE FUNCTION `kazaneya_techtalk.json_pretty_kv`(json STRING, delimiter STRING, `limit` INT64) RETURNS STRING LANGUAGE js
+AS
+r"""
   const _delimiter = delimiter ?? '\n';
   const genNamespace = (namespace, child) => `${namespace}.${child}`.replace(/^\./, '');
   const pretty_kvformat = (namespace, obj) => {
@@ -28,13 +27,4 @@ as r"""
 
   const o = JSON.parse(json);
   return pretty_kvformat('', o);
-"""
-;
-
-assert trim("""
-k1=long_value
-k2.item1=nestedvalue1
-arr.1=0
-arr.2=1
-arr.3=2
-""") = `kazaneya_techtalk.json_pretty_kv`('{"k1": "long_value", "k2": { "item1": "nestedvalue1"}, "arr": [1,2,3]}', null, 20);
+""";

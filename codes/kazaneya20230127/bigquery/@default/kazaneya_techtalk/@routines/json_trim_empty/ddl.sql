@@ -1,7 +1,6 @@
-create or replace function `kazaneya_techtalk.json_trim_empty`(json string)
-returns string
-language js
-as """
+CREATE OR REPLACE FUNCTION `kazaneya_techtalk.json_trim_empty`(json STRING) RETURNS STRING LANGUAGE js
+AS
+r"""
   const obj = JSON.parse(json);
   function trimNullElements(obj) {
       if (obj === null) {
@@ -33,10 +32,4 @@ as """
 
   const ret = trimNullElements(obj);
   return ret ? JSON.stringify(ret) : null;
-"""
-;
-
-assert `kazaneya_techtalk.json_trim_empty`('{"key": null}') is null;
-assert '{"key2":2}' = `kazaneya_techtalk.json_trim_empty`('{"key": null, "key2": 2}');
-assert '{"key2":2}' = `kazaneya_techtalk.json_trim_empty`('{"key": {"item": null}, "key2": 2}');
-assert '[1,2]' = `kazaneya_techtalk.json_trim_empty`('[1,null,2]');
+""";

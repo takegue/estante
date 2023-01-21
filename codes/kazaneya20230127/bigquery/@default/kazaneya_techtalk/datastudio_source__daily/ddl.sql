@@ -1,7 +1,7 @@
 declare query string;
 
 set query = format("""
-  select * from `%s.kazaneya_techtalk.analytics`(@begin, @end, ("daily", "#overall", "#overall"))
+  select * from `%s.kazaneya_techtalk.analytics`(@begin, @end, ("daily", "overall", "overall"))
 """, @@project_id);
 
 
