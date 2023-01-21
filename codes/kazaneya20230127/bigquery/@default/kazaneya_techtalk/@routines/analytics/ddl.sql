@@ -15,6 +15,7 @@ with
         select
             any_value(units) as units,
             any_value(segment) as segment,
+            any_value(funnel) as funnel,
             struct(
                 -- 型ごとに主要統計量の取り方が定まる
                 -- timestamp signal
@@ -62,11 +63,12 @@ with
                             when "overall"
                             then null
                             when "weekly"
-                            then datetime_trunc(signal.timestamp, week, 'Asia/Tokyo')
+                            then datetime(datetime_trunc(signal.timestamp, week, 'Asia/Tokyo'), 'Asia/Tokyo')
                             when "daily"
-                            then datetime_trunc(signal.timestamp, day, 'Asia/Tokyo')
+                            then datetime(datetime_trunc(signal.timestamp, day, 'Asia/Tokyo'), 'Asia/Tokyo')
                             when "hourly"
-                            then datetime_trunc(signal.timestamp, hour, 'Asia/Tokyo')
+                            then datetime(datetime_trunc(signal.timestamp, hour, 'Asia/Tokyo'), 'Asia/Tokyo')
+                            else error("analytics_units.time is invalid")
                         end as time_id,
                         case
                             analytics_units.user
@@ -102,14 +104,17 @@ with
                             struct(
                               entities.time.dayofweek_type as dayofweek_type
                             ) as time
-                        ) as segment
+                        ) as segment,
+                    signal_type as funnel
                     )
                 ]
             )
-        group by format('%t', units)
+        group by format('%t', (units, segment, funnel))
     ),
     core_stats as (
         select
+            format('%t', any_value(_group_key)) as _pivot_key,
+            any_value(funnel) as funnel,
             -- Unit Metrics
             any_value(_group_key).*,
             struct(
@@ -124,12 +129,29 @@ with
                     max(metrics.timestamp.min) as max
                 ) as timestamp,
                 struct(
+                    sum(metrics.device.nonnull) as nonnull,
+                    hll_count.merge(metrics.device.hll) as uniques
+                ) as device,
+                struct(
+                    sum(metrics.session.nonnull) as nonnull,
+                    hll_count.merge(metrics.session.hll) as uniques
+                ) as session,
+                struct(
+                    sum(metrics.page.nonnull) as nonnull,
+                    hll_count.merge(metrics.page.hll) as uniques
+                ) as page,
+                struct(
+                    sum(metrics.item.nonnull) as nonnull,
+                    hll_count.merge(metrics.item.hll) as uniques
+                ) as `item`,
+                struct(
                     sum(metrics.order.nonnull) as nonnull,
-                    hll_count.merge_partial(metrics.order.hll) as hll
+                    hll_count.merge(metrics.order.hll) as uniques
                 ) as `order`,
                 struct(
                     sum(metrics.revenue.nonnull) as nonnull,
-                    sum(metrics.revenue.sum) as sum
+                    sum(metrics.revenue.sum) as sum,
+                    sum(metrics.revenue.sum2) as sum2
                 ) as revenue
             ) as metrics
         from grain
@@ -259,32 +281,42 @@ with
                 ]
             ) as dim__time
         left join unnest([struct(dim__user as user, dim__item as item, dim__time)]) as segments
-        left join
-            unnest(
-                [
-                    struct(
-                        'week' as unit,
-                        datetime(timestamp_trunc(units.time_id, week)) as id
-                    ),
-                    struct('day' as unit, datetime(date(units.time_id)) as id),
-                    struct('hour' as unit, datetime(units.time_id) as id),
-                    null
-                ]
-            ) as time
-        left join unnest([struct(struct(time) as units, segments)]) as _group_key
-
+        left join unnest([struct(units as units, segments)]) as _group_key
+        left join unnest(["#overall", funnel]) as funnel
         -- unit
-        group by format('%t', _group_key)
+        group by format('%t', (_group_key, funnel))
+    )
+    , funnels as (
+      select
+        overall.units as units,
+        overall.segments as segments,
+        overall.metrics as oveall,
+        page_view.metrics as page_view,
+        view_item.metrics as view_item,
+        select_item.metrics as select_item,
+        add_to_cart.metrics as add_to_cart,
+        purchase.metrics as purchase,
+      from core_stats
+        pivot (any_value(
+            struct(units, segments, metrics, unit_metrics))
+          for funnel in (
+            '#overall' as overall,
+            'page_view',
+            'view_item',
+            'select_item',
+            'add_to_cart',
+            'purchase'
+          )
+        )
     )
 
 select
-    units,
-    units.time.id as time_id,
-    -- units.user.id as user_id,
+    analytics_units,
+    units.*,
     `kazaneya_techtalk.json_pretty_kv`(
         `kazaneya_techtalk.json_trim_empty`(to_json_string(segments)), ', ', null
     ) as segment_label,
     -- units.item.id as item_id,
     * except (units)
-from core_stats
+from funnels
 ;

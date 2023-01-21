@@ -1,7 +1,6 @@
 select
     parse_date('%Y%m%d', _table_suffix) as date,
     timestamp_trunc(timestamp, hour) as time_id,
-    user_pseudo_id as user_id,
     session_id,
     page_id,
     _v.item_id,
@@ -15,9 +14,9 @@ select
       ) as app,
       struct(
         _v.item_id as item_id,
-        ifnull(split(_v.item_category)[safe_offset(0)], "#missing") as item_category1,
-        ifnull(split(_v.item_category)[safe_offset(1)], "#missing") as item_category2,
-        ifnull(split(_v.item_category)[safe_offset(2)], "#missing") as item_category3,
+        ifnull(split(_v.item_category, '/')[safe_offset(0)], "#missing") as item_category1,
+        ifnull(split(_v.item_category, '/')[safe_offset(1)], "#missing") as item_category2,
+        ifnull(split(_v.item_category, '/')[safe_offset(2)], "#missing") as item_category3,
         item.price as price,
         item.quantity as quantity,
         item.item_revenue as revenue
@@ -44,7 +43,6 @@ select
         item.item_revenue / ecommerce.purchase_revenue as revenue_ratio,
         page_id,
         device_id,
-        user_id,
         session_id,
         _v.item_id
     ) as signal
@@ -99,4 +97,4 @@ left join
 -- left join `item` using(item_id) -- segments
 where
   _table_suffix = "20210101"
-  and event_name in ('pageview', 'view_item', 'select_item', 'add_to_cart', 'purchase')
+  and event_name in ('page_view', 'view_item', 'select_item', 'add_to_cart', 'purchase')

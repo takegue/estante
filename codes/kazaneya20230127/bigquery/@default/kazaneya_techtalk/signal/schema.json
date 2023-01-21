@@ -10,11 +10,6 @@
     "mode": "NULLABLE"
   },
   {
-    "name": "user_id",
-    "type": "STRING",
-    "mode": "NULLABLE"
-  },
-  {
     "name": "session_id",
     "type": "INTEGER",
     "mode": "NULLABLE"
@@ -314,11 +309,6 @@
       },
       {
         "name": "device_id",
-        "type": "STRING",
-        "mode": "NULLABLE"
-      },
-      {
-        "name": "user_id",
         "type": "STRING",
         "mode": "NULLABLE"
       },

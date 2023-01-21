@@ -2,7 +2,9 @@ declare query string;
 
 set query = format("""
   select * from `%s.kazaneya_techtalk.analytics`(@begin, @end, ("daily", "overall", "overall"))
-""", @@project_id);
+  union all
+  select * from `%s.kazaneya_techtalk.analytics`(@begin, @end, ("hourly", "overall", "overall"))
+""", @@project_id, @@project_id);
 
 
 with _implict_deps as (
