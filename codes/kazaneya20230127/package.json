@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "bigquery-porter": "^0.2.4"
+  },
+  "scripts": {
+    "deploy": "bqport format && bqport push"
+  }
+}

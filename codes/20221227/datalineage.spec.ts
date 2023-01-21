@@ -69,6 +69,8 @@ class DataLineage extends Service {
 describe("dataLineageAPI", () => {
   it("client test", async () => {
     const client = new DataLineage();
+
+    await client.getOperations();
     await client.getSearchLinks();
   });
 });

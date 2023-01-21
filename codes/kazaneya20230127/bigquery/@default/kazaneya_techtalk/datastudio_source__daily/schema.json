@@ -1,0 +1,136 @@
+[
+  {
+    "name": "unit",
+    "type": "STRING"
+  },
+  {
+    "name": "time_id",
+    "type": "DATETIME"
+  },
+  {
+    "name": "user_id",
+    "type": "STRING"
+  },
+  {
+    "name": "item_id",
+    "type": "STRING"
+  },
+  {
+    "name": "segments",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "user",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "category",
+            "type": "STRING"
+          },
+          {
+            "name": "country",
+            "type": "STRING"
+          }
+        ]
+      },
+      {
+        "name": "item",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "item_category",
+            "type": "STRING"
+          }
+        ]
+      },
+      {
+        "name": "time",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "dayofweek",
+            "type": "INTEGER"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "unit_metrics",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "time",
+        "type": "INTEGER"
+      },
+      {
+        "name": "users",
+        "type": "INTEGER"
+      },
+      {
+        "name": "items",
+        "type": "INTEGER"
+      },
+      {
+        "name": "user_item",
+        "type": "INTEGER"
+      }
+    ]
+  },
+  {
+    "name": "metrics",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "records",
+        "type": "INTEGER"
+      },
+      {
+        "name": "timestamp",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "min",
+            "type": "TIMESTAMP"
+          },
+          {
+            "name": "max",
+            "type": "TIMESTAMP"
+          }
+        ]
+      },
+      {
+        "name": "order",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "hll",
+            "type": "BYTES"
+          }
+        ]
+      },
+      {
+        "name": "revenue",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "sum",
+            "type": "FLOAT"
+          }
+        ]
+      }
+    ]
+  }
+]

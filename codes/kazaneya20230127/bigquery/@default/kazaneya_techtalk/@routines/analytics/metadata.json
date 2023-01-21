@@ -1,0 +1,46 @@
+{
+  "routineType": "TABLE_VALUED_FUNCTION",
+  "language": "SQL",
+  "arguments": [
+    {
+      "name": "begins_at",
+      "dataType": {
+        "typeKind": "DATE"
+      }
+    },
+    {
+      "name": "ends_at",
+      "dataType": {
+        "typeKind": "DATE"
+      }
+    },
+    {
+      "name": "analytics_units",
+      "dataType": {
+        "typeKind": "STRUCT",
+        "structType": {
+          "fields": [
+            {
+              "name": "time",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "user",
+              "type": {
+                "typeKind": "STRING"
+              }
+            },
+            {
+              "name": "product",
+              "type": {
+                "typeKind": "STRING"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

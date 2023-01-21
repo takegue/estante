@@ -1,0 +1,356 @@
+[
+  {
+    "name": "date",
+    "type": "DATE",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "units",
+    "type": "RECORD",
+    "mode": "NULLABLE",
+    "fields": [
+      {
+        "name": "time_id",
+        "type": "TIMESTAMP",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "user_id",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_id",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      }
+    ]
+  },
+  {
+    "name": "user",
+    "type": "RECORD",
+    "mode": "NULLABLE",
+    "fields": [
+      {
+        "name": "device",
+        "type": "RECORD",
+        "mode": "NULLABLE",
+        "fields": [
+          {
+            "name": "category",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "mobile_brand_name",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "mobile_model_name",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "mobile_marketing_name",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "mobile_os_hardware_model",
+            "type": "INTEGER",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "operating_system",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "operating_system_version",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "vendor_id",
+            "type": "INTEGER",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "advertising_id",
+            "type": "INTEGER",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "language",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "is_limited_ad_tracking",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "time_zone_offset_seconds",
+            "type": "INTEGER",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "web_info",
+            "type": "RECORD",
+            "mode": "NULLABLE",
+            "fields": [
+              {
+                "name": "browser",
+                "type": "STRING",
+                "mode": "NULLABLE"
+              },
+              {
+                "name": "browser_version",
+                "type": "STRING",
+                "mode": "NULLABLE"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "geo",
+        "type": "RECORD",
+        "mode": "NULLABLE",
+        "fields": [
+          {
+            "name": "continent",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "sub_continent",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "country",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "region",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "city",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          },
+          {
+            "name": "metro",
+            "type": "STRING",
+            "mode": "NULLABLE"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "item",
+    "type": "RECORD",
+    "mode": "NULLABLE",
+    "fields": [
+      {
+        "name": "item_id",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_name",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_brand",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_variant",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_category",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_category2",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_category3",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_category4",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_category5",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "price_in_usd",
+        "type": "FLOAT",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "price",
+        "type": "FLOAT",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "quantity",
+        "type": "INTEGER",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_revenue_in_usd",
+        "type": "FLOAT",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_revenue",
+        "type": "FLOAT",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_refund_in_usd",
+        "type": "FLOAT",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_refund",
+        "type": "FLOAT",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "coupon",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "affiliation",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "location_id",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_list_id",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_list_name",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_list_index",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "promotion_id",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "promotion_name",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "creative_name",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "creative_slot",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      }
+    ]
+  },
+  {
+    "name": "signal_type",
+    "type": "STRING",
+    "mode": "NULLABLE"
+  },
+  {
+    "name": "signal",
+    "type": "RECORD",
+    "mode": "NULLABLE",
+    "fields": [
+      {
+        "name": "timestamp",
+        "type": "TIMESTAMP",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "transaction_id",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "purchase_revenue",
+        "type": "FLOAT",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "page_id",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "device_id",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "user_id",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "session_id",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "item_id",
+        "type": "STRING",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "first_visit_per_day",
+        "type": "INTEGER",
+        "mode": "NULLABLE"
+      },
+      {
+        "name": "first_purchase_per_user",
+        "type": "INTEGER",
+        "mode": "NULLABLE"
+      }
+    ]
+  }
+]

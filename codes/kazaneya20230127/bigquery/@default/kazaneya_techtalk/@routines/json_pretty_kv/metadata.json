@@ -1,0 +1,27 @@
+{
+  "routineType": "SCALAR_FUNCTION",
+  "language": "JAVASCRIPT",
+  "arguments": [
+    {
+      "name": "json",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "delimiter",
+      "dataType": {
+        "typeKind": "STRING"
+      }
+    },
+    {
+      "name": "limit",
+      "dataType": {
+        "typeKind": "INT64"
+      }
+    }
+  ],
+  "returnType": {
+    "typeKind": "STRING"
+  }
+}
