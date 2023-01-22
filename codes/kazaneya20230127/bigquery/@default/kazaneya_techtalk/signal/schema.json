@@ -45,79 +45,106 @@
             "mode": "NULLABLE",
             "fields": [
               {
+                "name": "lang",
+                "type": "STRING",
+                "mode": "NULLABLE"
+              },
+              {
                 "name": "category",
                 "type": "STRING",
                 "mode": "NULLABLE"
               },
               {
-                "name": "mobile_brand_name",
+                "name": "browser",
                 "type": "STRING",
                 "mode": "NULLABLE"
               },
               {
-                "name": "mobile_model_name",
+                "name": "brand",
                 "type": "STRING",
                 "mode": "NULLABLE"
               },
               {
-                "name": "mobile_marketing_name",
-                "type": "STRING",
-                "mode": "NULLABLE"
-              },
-              {
-                "name": "mobile_os_hardware_model",
-                "type": "INTEGER",
-                "mode": "NULLABLE"
-              },
-              {
-                "name": "operating_system",
-                "type": "STRING",
-                "mode": "NULLABLE"
-              },
-              {
-                "name": "operating_system_version",
-                "type": "STRING",
-                "mode": "NULLABLE"
-              },
-              {
-                "name": "vendor_id",
-                "type": "INTEGER",
-                "mode": "NULLABLE"
-              },
-              {
-                "name": "advertising_id",
-                "type": "INTEGER",
-                "mode": "NULLABLE"
-              },
-              {
-                "name": "language",
-                "type": "STRING",
-                "mode": "NULLABLE"
-              },
-              {
-                "name": "is_limited_ad_tracking",
-                "type": "STRING",
-                "mode": "NULLABLE"
-              },
-              {
-                "name": "time_zone_offset_seconds",
-                "type": "INTEGER",
-                "mode": "NULLABLE"
-              },
-              {
-                "name": "web_info",
+                "name": "_raw",
                 "type": "RECORD",
                 "mode": "NULLABLE",
                 "fields": [
                   {
-                    "name": "browser",
+                    "name": "category",
                     "type": "STRING",
                     "mode": "NULLABLE"
                   },
                   {
-                    "name": "browser_version",
+                    "name": "mobile_brand_name",
                     "type": "STRING",
                     "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "mobile_model_name",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "mobile_marketing_name",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "mobile_os_hardware_model",
+                    "type": "INTEGER",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "operating_system",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "operating_system_version",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "vendor_id",
+                    "type": "INTEGER",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "advertising_id",
+                    "type": "INTEGER",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "language",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "is_limited_ad_tracking",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "time_zone_offset_seconds",
+                    "type": "INTEGER",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "web_info",
+                    "type": "RECORD",
+                    "mode": "NULLABLE",
+                    "fields": [
+                      {
+                        "name": "browser",
+                        "type": "STRING",
+                        "mode": "NULLABLE"
+                      },
+                      {
+                        "name": "browser_version",
+                        "type": "STRING",
+                        "mode": "NULLABLE"
+                      }
+                    ]
                   }
                 ]
               }
@@ -134,29 +161,46 @@
                 "mode": "NULLABLE"
               },
               {
-                "name": "sub_continent",
-                "type": "STRING",
-                "mode": "NULLABLE"
-              },
-              {
-                "name": "country",
-                "type": "STRING",
-                "mode": "NULLABLE"
-              },
-              {
                 "name": "region",
                 "type": "STRING",
                 "mode": "NULLABLE"
               },
               {
-                "name": "city",
-                "type": "STRING",
-                "mode": "NULLABLE"
-              },
-              {
-                "name": "metro",
-                "type": "STRING",
-                "mode": "NULLABLE"
+                "name": "_raw",
+                "type": "RECORD",
+                "mode": "NULLABLE",
+                "fields": [
+                  {
+                    "name": "continent",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "sub_continent",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "country",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "region",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "city",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                  },
+                  {
+                    "name": "metro",
+                    "type": "STRING",
+                    "mode": "NULLABLE"
+                  }
+                ]
               }
             ]
           },

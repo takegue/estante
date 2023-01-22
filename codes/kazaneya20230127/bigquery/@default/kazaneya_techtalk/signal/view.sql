@@ -6,7 +6,21 @@ select
     _v.item_id,
     device_id,
     struct(
-      struct(device, geo, is_debug_user) as user,
+      struct(
+        struct(
+          ifnull(device.language, '#none') as lang,
+          ifnull(device.category, '#none') as category,
+          ifnull(device.web_info.browser, '#none') as browser,
+          ifnull(device.mobile_brand_name, '#none') as brand,
+          device as _raw
+        ) as device,
+        struct(
+          ifnull(geo.continent, '#none') as continent,
+          ifnull(geo.region, '#none') as region,
+          geo as _raw
+        ) as geo,
+        is_debug_user
+      ) as user,
       struct(
         `bqutil.fn.url_parse`(page_id, 'HOST') as host,
         `bqutil.fn.url_parse`(page_id, 'PATH') as path,

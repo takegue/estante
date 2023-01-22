@@ -30,6 +30,21 @@
     "type": "STRING"
   },
   {
+    "name": "segment_kv",
+    "type": "RECORD",
+    "mode": "REPEATED",
+    "fields": [
+      {
+        "name": "key",
+        "type": "STRING"
+      },
+      {
+        "name": "value",
+        "type": "STRING"
+      }
+    ]
+  },
+  {
     "name": "segments",
     "type": "RECORD",
     "fields": [
@@ -82,7 +97,7 @@
         ]
       },
       {
-        "name": "dim__time",
+        "name": "time",
         "type": "RECORD",
         "fields": [
           {

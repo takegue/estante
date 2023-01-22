@@ -86,10 +86,10 @@ with
                     struct(
                         struct(
                             struct(
-                                entities.user.device.language as lang,
+                                entities.user.device.lang as lang,
                                 entities.user.device.category as category,
-                                entities.user.device.web_info.browser as browser,
-                                entities.user.device.mobile_brand_name as brand,
+                                entities.user.device.browser as browser,
+                                entities.user.device.brand as brand,
                                 entities.user.geo.continent as geo_continent,
                                 entities.user.geo.region as geo_region
                             ) as user,
@@ -272,6 +272,13 @@ with
         left join
             unnest(
                 [
+                    // スキーマの互換性を保ちつつ、セグメントを追加するにはここを編集する
+                    to_json(struct())
+                ]
+            ) as dim__other
+        left join
+            unnest(
+                [
                     struct(
                         if(false, segment.time.dayofweek_type, "#overall") as dayofweek
                     ),
@@ -280,7 +287,12 @@ with
                     )
                 ]
             ) as dim__time
-        left join unnest([struct(dim__user as user, dim__item as item, dim__time)]) as segments
+        left join unnest([struct(
+            dim__user as user,
+            dim__item as item,
+            dim__time as time,
+            dim__other as other
+        )]) as segments
         left join unnest([struct(units as units, segments)]) as _group_key
         left join unnest(["#overall", funnel]) as funnel
         -- unit
@@ -314,8 +326,13 @@ select
     analytics_units,
     units.*,
     `kazaneya_techtalk.json_pretty_kv`(
-        `kazaneya_techtalk.json_trim_empty`(to_json_string(segments)), ', ', null
+      `kazaneya_techtalk.json_trim_empty`(to_json_string(segments)), ', ', null
     ) as segment_label,
+    `bqutil.fn.string_to_struct`(
+      `kazaneya_techtalk.json_pretty_kv`(
+        `kazaneya_techtalk.json_trim_empty`(to_json_string(segments)), ', ', null
+      ), ",", "="
+    ) as segment_kv,
     -- units.item.id as item_id,
     * except (units)
 from funnels
