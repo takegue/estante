@@ -2,11 +2,11 @@
 
 # Consistency is imperative quality for User Experience
 
-一貫性は最も注意すすべき品質である。
+一貫性はデータセット開発者が最も注意すすべき品質である。
 すべてのデータセットは一定の規則を元に構築されていることが望ましい。
 これは命名やドキュメンテーション、メタデータ管理に関する一貫性を必要とする。
 
-これは利用者に便益を生む。
+なぜこれらに配慮する必要があるかこれは利用者に最も便益を生むためである。
 ユーザは、データセット、テーブル、カラムなどの一覧を見るだけで
 直感的かつ書くべきSQLが想像できることが好ましい。
 また機能の「不足/不可能」がつたわることも重要なポイントである。
@@ -15,6 +15,12 @@ SQLによる分析はテーブルの結合操作により利用来ることが�
 単一のデータセットによってすべての分析をまかなうことは難しいため
 単一のデータセットに限らない一貫性が必要である。
 
+- Simple
+- Composable
+- Predictable
+- Backwards compatible
+
+# Consistency is imperative quality for User Experience
 
 # Dataset as API
 
@@ -102,6 +108,8 @@ log__[log_nane]
 ```
 
 
+# Consistency is imperative quality for User Experience
+
 # Related Other Architecture
 
 ## Data Vault 2.0
@@ -118,3 +126,8 @@ SatelliteやHubは ユーザが利用する際には、 ひとつのワイドテ
 ## Data Governance for Security
 
 ### Dataset Access Control
+
+
+## References
+
+- [Stripe Sessions 2019 | How Stripe builds APIs and teams](https://www.youtube.com/watch?v=IEe-5VOv0Js)
