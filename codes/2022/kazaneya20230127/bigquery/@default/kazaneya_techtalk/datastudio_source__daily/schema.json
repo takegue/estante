@@ -1,0 +1,811 @@
+[
+  {
+    "name": "analytics_units",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "time",
+        "type": "STRING"
+      },
+      {
+        "name": "user",
+        "type": "STRING"
+      },
+      {
+        "name": "product",
+        "type": "STRING"
+      }
+    ]
+  },
+  {
+    "name": "time_id",
+    "type": "DATETIME"
+  },
+  {
+    "name": "user_id",
+    "type": "STRING"
+  },
+  {
+    "name": "segment_label",
+    "type": "STRING"
+  },
+  {
+    "name": "segment_kv",
+    "type": "RECORD",
+    "mode": "REPEATED",
+    "fields": [
+      {
+        "name": "key",
+        "type": "STRING"
+      },
+      {
+        "name": "value",
+        "type": "STRING"
+      }
+    ]
+  },
+  {
+    "name": "segments",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "user",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "lang",
+            "type": "STRING"
+          },
+          {
+            "name": "category",
+            "type": "STRING"
+          },
+          {
+            "name": "browser",
+            "type": "STRING"
+          },
+          {
+            "name": "brand",
+            "type": "STRING"
+          },
+          {
+            "name": "geo_continent",
+            "type": "STRING"
+          },
+          {
+            "name": "geo_region",
+            "type": "STRING"
+          }
+        ]
+      },
+      {
+        "name": "item",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "item_category1",
+            "type": "STRING"
+          },
+          {
+            "name": "item_category2",
+            "type": "STRING"
+          },
+          {
+            "name": "item_category3",
+            "type": "STRING"
+          }
+        ]
+      },
+      {
+        "name": "time",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "dayofweek",
+            "type": "STRING"
+          }
+        ]
+      },
+      {
+        "name": "other",
+        "type": "JSON"
+      }
+    ]
+  },
+  {
+    "name": "oveall",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "records",
+        "type": "INTEGER"
+      },
+      {
+        "name": "timestamp",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "min",
+            "type": "TIMESTAMP"
+          },
+          {
+            "name": "max",
+            "type": "TIMESTAMP"
+          }
+        ]
+      },
+      {
+        "name": "device",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "session",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "page",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "item",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "order",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "revenue",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "sum",
+            "type": "FLOAT"
+          },
+          {
+            "name": "sum2",
+            "type": "FLOAT"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "page_view",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "records",
+        "type": "INTEGER"
+      },
+      {
+        "name": "timestamp",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "min",
+            "type": "TIMESTAMP"
+          },
+          {
+            "name": "max",
+            "type": "TIMESTAMP"
+          }
+        ]
+      },
+      {
+        "name": "device",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "session",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "page",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "item",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "order",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "revenue",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "sum",
+            "type": "FLOAT"
+          },
+          {
+            "name": "sum2",
+            "type": "FLOAT"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "view_item",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "records",
+        "type": "INTEGER"
+      },
+      {
+        "name": "timestamp",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "min",
+            "type": "TIMESTAMP"
+          },
+          {
+            "name": "max",
+            "type": "TIMESTAMP"
+          }
+        ]
+      },
+      {
+        "name": "device",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "session",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "page",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "item",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "order",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "revenue",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "sum",
+            "type": "FLOAT"
+          },
+          {
+            "name": "sum2",
+            "type": "FLOAT"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "select_item",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "records",
+        "type": "INTEGER"
+      },
+      {
+        "name": "timestamp",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "min",
+            "type": "TIMESTAMP"
+          },
+          {
+            "name": "max",
+            "type": "TIMESTAMP"
+          }
+        ]
+      },
+      {
+        "name": "device",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "session",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "page",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "item",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "order",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "revenue",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "sum",
+            "type": "FLOAT"
+          },
+          {
+            "name": "sum2",
+            "type": "FLOAT"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "add_to_cart",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "records",
+        "type": "INTEGER"
+      },
+      {
+        "name": "timestamp",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "min",
+            "type": "TIMESTAMP"
+          },
+          {
+            "name": "max",
+            "type": "TIMESTAMP"
+          }
+        ]
+      },
+      {
+        "name": "device",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "session",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "page",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "item",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "order",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "revenue",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "sum",
+            "type": "FLOAT"
+          },
+          {
+            "name": "sum2",
+            "type": "FLOAT"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "purchase",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "records",
+        "type": "INTEGER"
+      },
+      {
+        "name": "timestamp",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "min",
+            "type": "TIMESTAMP"
+          },
+          {
+            "name": "max",
+            "type": "TIMESTAMP"
+          }
+        ]
+      },
+      {
+        "name": "device",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "session",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "page",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "item",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "order",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "uniques",
+            "type": "INTEGER"
+          }
+        ]
+      },
+      {
+        "name": "revenue",
+        "type": "RECORD",
+        "fields": [
+          {
+            "name": "nonnull",
+            "type": "INTEGER"
+          },
+          {
+            "name": "sum",
+            "type": "FLOAT"
+          },
+          {
+            "name": "sum2",
+            "type": "FLOAT"
+          }
+        ]
+      }
+    ]
+  }
+]

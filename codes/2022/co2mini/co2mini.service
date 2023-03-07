@@ -1,0 +1,13 @@
+[Unit]
+Description=co2mini
+After=syslog.target
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/share/co2mini
+ExecStart=/opt/co2mini/co2mini
+TimeoutStopSec=5
+StandardOutput=null
+
+[Install]
+WantedBy = multi-user.target

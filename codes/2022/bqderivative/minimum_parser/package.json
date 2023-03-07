@@ -1,0 +1,42 @@
+{
+  "name": "tree-sitter-sql-bigquery",
+  "version": "0.0.22",
+  "description": "SQL grammar fom tree-sitter",
+  "main": "bindings/node",
+  "scripts": {
+    "test": "tree-sitter generate && tree-sitter test",
+    "gen": "tree-sitter generate",
+    "hl": "tree-sitter highlight",
+    "parse": "tree-sitter parse",
+    "fix": "deno fmt",
+    "build-wasm": "tree-sitter build-wasm",
+    "playground": "tree-sitter generate && rm -f tree-sitter-sql-bigquery.wasm && npm run build-wasm && tree-sitter playground"
+  },
+  "keywords": [
+    "parser",
+    "lexer",
+    "sql",
+    "bigquery"
+  ],
+  "repository": "https://github.com/takegue/tree-sitter-sql-bigquery",
+  "author": "takegue <takegue@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "nan": "^2.14.2"
+  },
+  "devDependencies": {
+    "graphviz": "^0.0.9",
+    "prettier": "^2.4.1",
+    "tree-sitter-cli": "^0.20.6"
+  },
+  "tree-sitter": [
+    {
+      "scope": "source.sql",
+      "file-types": [
+        "sql",
+        "bqsql"
+      ],
+      "content-regex": "select|SELECT"
+    }
+  ]
+}

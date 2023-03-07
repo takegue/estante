@@ -1,0 +1,12 @@
+[
+    {
+        "name": "a",
+        "type": "INTEGER",
+        "mode": "NULLABLE"
+    },
+    {
+        "name": "b",
+        "type": "INTEGER",
+        "mode": "NULLABLE"
+    }
+]
